@@ -1,5 +1,4 @@
 
-
 #' @title Clean results from football data
 #'
 #' @description Clean results data from www.football-data.co.uk
@@ -47,8 +46,9 @@ clean_results_fdm <- function(file){
   # First we clean the column names
   
   file_short <- str_split(file, pattern = "/") %>%
-    unlist() %>% rev() %>%
-    extract(1) %>%
+    unlist() %>% 
+    rev() %>%
+    magrittr::extract(1) %>%
     str_replace(pattern = ".csv", replacement = "")
   
   season_id <- file_short %>% str_extract(pattern = "[0-9]{4}_[0-9]{4}")
