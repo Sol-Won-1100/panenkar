@@ -1,2 +1,2 @@
 # panenkar
-Collection of functions for football betting
+Collection of functions for football betting.
