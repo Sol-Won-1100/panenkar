@@ -17,11 +17,13 @@ manual_clean_teams <- function(database){
   database %>%
     mutate(
       away_team = case_when(
-        away_team == "Raith" ~ "Raith Rvs"
+        away_team == "Raith" ~ "Raith Rvs",
+        TRUE ~ away_team
       ),
       
       match_id = case_when(
-        away_team == "Raith" ~ str_replace(match_id, "Raith", "Raith Rvs")
+        away_team == "Raith" ~ str_replace(match_id, "Raith", "Raith Rvs"),
+        TRUE ~ match_id
       )
     )
 }
