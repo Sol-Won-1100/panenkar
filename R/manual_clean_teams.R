@@ -18,7 +18,7 @@ manual_clean_teams <- function(database){
     mutate(
       away_team = case_when(
         away_team == "Raith" ~ "Raith Rvs",
-        away_team == "Raith" ~ "Raith Rvs"
+        away_team == "Raith" ~ "Raith Rvs",
         TRUE ~ away_team
       ),
       
