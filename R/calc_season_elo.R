@@ -1,13 +1,25 @@
 
-calc_season_elo_odds <- function(results_season, elo_record){
+#' @title Calculate Season ELO
+#'
+#' @description Calculate ELO ratings for a single season
+#'
+#' @param results set of results to calculate ELO rating for
+#' @param elo_record starting ELO ratings for each team in the results data
+#' 
+#' @note 
+#'       
+#' @export
+#'
+#' @examples
+
+calc_season_elo <- function(results, elo_record){
   
-  
-  for(j in 1:nrow(results_season)){
+  for(j in 1:nrow(results)){
     
     # Exctract match details - don't exctract date into a vector because it
     # changes the type so we will access it using the $ operator
     
-    match <- results_season %>% slice(j)
+    match <- results %>% slice(j)
     
     match_home_team <- match %>% select(home_team) %>% unlist()
     match_away_team <- match %>% select(away_team) %>% unlist()
@@ -27,9 +39,9 @@ calc_season_elo_odds <- function(results_season, elo_record){
       select(elo) %>%
       unlist()
     
-    # Update the pre match elos in the season results_season
+    # Update the pre match elos in the season results
     
-    results_season <- results_season %>%
+    results <- results %>%
       mutate(elo_home_pre = if_else(row_number() == j, 
                                     match_elo_home_pre,
                                     elo_home_pre),
@@ -42,14 +54,14 @@ calc_season_elo_odds <- function(results_season, elo_record){
     if(is.na(match_probs_home) | is.na(match_probs_draw) | is.na(match_probs_away)){
       match_elos_post <- c(match_elo_home_pre, match_elo_away_pre)
     } else {
-      match_elos_post <- update_elo_odds(match_elo_home_pre, match_elo_away_pre, 
+      match_elos_post <- update_elo(match_elo_home_pre, match_elo_away_pre, 
                                          match_probs_home, match_probs_draw, 
                                          match_probs_away)
     }
     
-    # Update the post match elos in the season results_season and amend elo record
+    # Update the post match elos in the season results and amend elo record
     
-    results_season <- results_season %>%
+    results <- results %>%
       mutate(elo_home_post = if_else(row_number() == j, 
                                      match_elos_post[1],
                                      elo_home_post),
@@ -63,11 +75,5 @@ calc_season_elo_odds <- function(results_season, elo_record){
     
   }
   
-  return(list(results_season = results_season, elo_record = elo_record))
+  return(list(results = results, elo_record = elo_record))
 }
-
-
-
-
-
-

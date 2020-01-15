@@ -27,12 +27,12 @@
 #' elo_home <- 800
 #' elo_away <- 950
 #'
-#' update_elo_odds(800, 950, probs[1], probs[2], probs[3], 
-#'                 output_format = "named_vector")
+#' update_elo(800, 950, probs[1], probs[2], probs[3], 
+#'            output_format = "named_vector")
 
-update_elo_odds <- function(elo_home, elo_away, home, draw, away, 
-                            advantage_home = 80, x = 10, y = 400, z = 175, 
-                            output_format = "tibble"){
+update_elo <- function(elo_home, elo_away, home, draw, away, 
+                       advantage_home = 80, x = 10, y = 400, z = 175, 
+                       output_format = "tibble"){
   
   if(round(sum(home, draw, away),4) != 1){
     stop("sum of actuals must = 1")
