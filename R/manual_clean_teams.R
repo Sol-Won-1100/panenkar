@@ -25,8 +25,6 @@ manual_clean_teams <- function(database){
       match_id = case_when(
         away_team == "Raith" ~ str_replace(match_id, "Raith", "Raith Rvs"),
         TRUE ~ match_id
-        away_team == "Raith" ~ str_replace(match_id, "Raith", "Raith Rvs")
-        TRUE ~ away_team
       )
     )
 }
