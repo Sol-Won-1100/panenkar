@@ -76,7 +76,7 @@ clean_results_fdm <- function(file){
   # Read in the dataset
   suppressWarnings(
     suppressMessages(
-      fd_raw <- read_csv_with_check(file)
+      fd_raw <- read_csv_robust(file)
     )
   )
   
@@ -188,7 +188,7 @@ clean_results_fde <- function(file){
   # Read in the dataset
   suppressWarnings(
     suppressMessages(
-      fd_raw <- read_csv_with_check(file)
+      fd_raw <- read_csv_robust(file)
     )
   )
   
