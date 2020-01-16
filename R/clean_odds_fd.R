@@ -72,7 +72,7 @@ clean_odds_fdm <- function(file){
   # Read in the dataset
   suppressWarnings(
     suppressMessages(
-      fd_raw <- read_csv_with_check(file)
+      fd_raw <- read_csv_robust(file)
     )
   )
   
@@ -164,7 +164,7 @@ clean_odds_fde <- function(file){
   # Read in the dataset
   suppressWarnings(
     suppressMessages(
-      fd_raw <- read_csv_with_check(file)
+      fd_raw <- read_csv_robust(file)
     )
   )
   
