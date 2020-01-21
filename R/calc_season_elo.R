@@ -14,6 +14,9 @@
 
 calc_season_elo <- function(results, elo_record){
   
+  results <- mutate(results, elo_home_pre = NA_real_, elo_away_pre = NA_real_,
+                    elo_home_post = NA_real_, elo_away_post = NA_real_)
+  
   for(j in 1:nrow(results)){
     
     # Exctract match details - don't exctract date into a vector because it
@@ -55,17 +58,18 @@ calc_season_elo <- function(results, elo_record){
       match_elos_post <- c(match_elo_home_pre, match_elo_away_pre)
     } else {
       match_elos_post <- update_elo(match_elo_home_pre, match_elo_away_pre, 
-                                         match_probs_home, match_probs_draw, 
-                                         match_probs_away)
+                                    match_probs_home, match_probs_draw, 
+                                    match_probs_away) %>%
+        unlist()
     }
     
     # Update the post match elos in the season results and amend elo record
     
     results <- results %>%
-      mutate(elo_home_post = if_else(row_number() == j, 
+      mutate(elo_home_post = if_else(row_number() == j,
                                      match_elos_post[1],
                                      elo_home_post),
-             elo_away_post = if_else(row_number() == j, 
+             elo_away_post = if_else(row_number() == j,
                                      match_elos_post[2],
                                      elo_away_post))
     elo_record <- elo_record %>%
