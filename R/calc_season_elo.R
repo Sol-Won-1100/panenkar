@@ -23,9 +23,9 @@ calc_season_elo <- function(results, elo_record){
     
     match_home_team <- match %>% select(home_team) %>% unlist()
     match_away_team <- match %>% select(away_team) %>% unlist()
-    match_probs_home <- match %>% select(probs_home_no_margin) %>% unlist()
-    match_probs_draw <- match %>% select(probs_draw_no_margin) %>% unlist()
-    match_probs_away <- match %>% select(probs_away_no_margin) %>% unlist()
+    match_probs_home <- match %>% select(home_prob) %>% unlist()
+    match_probs_draw <- match %>% select(draw_prob) %>% unlist()
+    match_probs_away <- match %>% select(away_prob) %>% unlist()
     
     # Lookup teams elos from the record
     
