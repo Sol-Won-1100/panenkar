@@ -5,13 +5,13 @@
 #'
 #' @param elo_home The current elo rating of the home team
 #' @param elo_away The current elo rating of the away team
-#' @param home
-#' @param draw
-#' @param away home, draw and away take one of the following formats. Either an
+#' @param home home, draw and away take one of the following formats. Either an
 #'             indicator to show what the actual result was e.g. home = 1, 
 #'             draw = 0, away = 0 for a home win or the probability of each 
 #'             outcome derived via bookmakers odds or some other method. 
 #' for more info on different types of league at www.football-data.co.uk.
+#' @param draw see above
+#' @param away see above
 #' 
 #' @note The functions default values are configured for the 'odds' methods 
 #'       where probabilities derived via bookmakers odds are used. It has been

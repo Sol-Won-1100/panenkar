@@ -5,12 +5,8 @@
 #'
 #' @param results set of results to calculate ELO rating for
 #' @param elo_record starting ELO ratings for each team in the results data
-#' 
-#' @note 
-#'       
-#' @export
 #'
-#' @examples
+#' @export
 
 calc_season_elo <- function(results, elo_record){
   

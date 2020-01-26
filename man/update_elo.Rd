@@ -12,11 +12,15 @@ update_elo(elo_home, elo_away, home, draw, away, advantage_home = 80,
 
 \item{elo_away}{The current elo rating of the away team}
 
-\item{away}{home, draw and away take one of the following formats. Either an
+\item{home}{home, draw and away take one of the following formats. Either an
             indicator to show what the actual result was e.g. home = 1, 
             draw = 0, away = 0 for a home win or the probability of each 
             outcome derived via bookmakers odds or some other method. 
 for more info on different types of league at www.football-data.co.uk.}
+
+\item{draw}{see above}
+
+\item{away}{see above}
 }
 \description{
 Update ELO rating

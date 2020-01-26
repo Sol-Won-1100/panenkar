@@ -14,6 +14,3 @@ calc_season_elo(results, elo_record)
 \description{
 Calculate ELO ratings for a single season
 }
-\note{
-
-}
