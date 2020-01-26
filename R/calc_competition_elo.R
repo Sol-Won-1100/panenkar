@@ -11,7 +11,6 @@
 #' 
 #' @export
 
-
 calc_competition_elo <- function(.competition_id, results, 
                                  message_user = FALSE){
   
@@ -116,11 +115,31 @@ calc_competition_elo <- function(.competition_id, results,
       }
       
       if(length(teams_promoted_to) > 0){
-        teams_relegated_from_average_elo <- elo_record %>%
-          filter(team %in% teams_relegated_from) %>%
-          select(elo) %>%
-          unlist() %>%
-          mean()
+        
+        # Sometimes if they change up the format of a league there will be no
+        # relegation and only promotion. In that case we need to modify the code
+        # to take the elo rating from the bottom 3 teams average rather than
+        # the relegated teams average
+        
+        if(length(teams_relegated_from) == 0){
+          teams_relegated_from_average_elo <- elo_record %>%
+            filter(team %in% previous_teams) %>%
+            arrange(elo) %>%
+            slice(1:3) %>%
+            select(elo) %>%
+            unlist() %>%
+            mean()
+          
+        } else {
+          teams_relegated_from_average_elo <- elo_record %>%
+            filter(team %in% teams_relegated_from) %>%
+            select(elo) %>%
+            unlist() %>%
+            mean()         
+        }
+        
+        
+        
         
         elo_record <- mutate(elo_record, 
                              elo = if_else(team %in% teams_promoted_to,
