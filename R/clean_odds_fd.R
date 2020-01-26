@@ -46,7 +46,7 @@ clean_odds_fdm <- function(file){
   
   file_short <- str_split(file, pattern = "/") %>%
     unlist() %>% rev() %>%
-    extract(1) %>%
+    magrittr::extract(1) %>%
     str_replace(pattern = ".csv", replacement = "")
   
   season_id <- file_short %>% str_extract(pattern = "[0-9]{4}_[0-9]{4}")
@@ -147,7 +147,7 @@ clean_odds_fde <- function(file){
   
   file_short <- str_split(file, pattern = "/") %>%
     unlist() %>% rev() %>%
-    extract(1) %>%
+    magrittr::extract(1) %>%
     str_replace(pattern = ".csv", replacement = "")
   
   competition_id <- str_replace(file_short, pattern = "_all", replacement = "")

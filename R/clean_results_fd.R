@@ -160,7 +160,7 @@ clean_results_fde <- function(file){
     str_split(pattern = "/") %>%
     unlist() %>%
     rev() %>%
-    extract(1) %>%
+    magrittr::extract(1) %>%
     str_replace(pattern = "_all.csv", replacement = "")
   
   col_names_dirty <- c("Date" , "Time", "Home", "Away", "HG", "AG", "Res",
