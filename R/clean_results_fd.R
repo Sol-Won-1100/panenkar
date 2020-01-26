@@ -151,7 +151,7 @@ clean_results_fdm <- function(file){
 #' @examples
 #' file <- "C:/Users/Neil/Documents/football-betting/data/raw/eng_pl_2018_2019"
 #' clean_results_fdm(file)
-
+file <- "C:/Users/neil_/Desktop/Files/betting/football/data/raw/arg_pd_all.csv"
 clean_results_fde <- function(file){
   
   # First we clean the column names
@@ -227,7 +227,7 @@ clean_results_fde <- function(file){
                              match_date, ".",
                              home_team, ".",
                              away_team)) %>%
-    select(match_id, competition_id, season_id, home_team, away_team,
+    select(match_id, competition_id, season_id, match_date, home_team, away_team,
            home_goals, away_goals, match_result, home_goals_half1,
            away_goals_half1, match_result_half1, home_goals_half2,
            away_goals_half2, match_result_half2, home_shots, away_shots,
