@@ -46,14 +46,14 @@ extract_latest_elo <- function(.competition_id, results_elo,
   if(latest_season_teams == TRUE){
     latest_season <- unlist(results_elo_competition[1, "season_id"])
     
-    elo_record <- filter(elo_record, team %in% teams_latest)
-    
-    
     teams_latest <- results_elo_competition %>%
       filter(season_id == latest_season) %>%
       select(home_team, away_team) %>%
       unlist() %>%
       unique()
+    
+    elo_record <- filter(elo_record, team %in% teams_latest)
+
   }
   
   if(sorted == TRUE){
