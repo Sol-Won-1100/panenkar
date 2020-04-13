@@ -229,6 +229,7 @@ clean_results_fdm2 <- function(file){
            competition_id = competition_id) %>%
     distinct(.keep_all = TRUE) %>%
     add_independent_features_fd()
+
     
   return(fd_features)
 }
