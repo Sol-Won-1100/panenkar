@@ -30,7 +30,7 @@ get_from_football_data <- function(
     stop("bad competition_id format supplied see metadata")
   }
 
-  if(!is.na(season_ids)){
+  if(!is.na(season_ids[1])){
     season_ids_check <- map_lgl(season_ids, error_check_season_id)
 
     if(length(season_ids_check) != sum(season_ids_check)){
