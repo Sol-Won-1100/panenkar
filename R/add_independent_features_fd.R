@@ -67,7 +67,7 @@ add_independent_feature_fd <- function(x, feature){
     x <- mutate(x, away_goals_half2 = away_goals - away_goals_half1)
     
   } else if(feature == "result"){
-    x <- mutate(x, result = calculate_result(home_goals, away_goals))
+    x <- mutate(x, result = calc_result(home_goals, away_goals))
     
   } else if(feature == "result_half1"){
     x <- x %>%
