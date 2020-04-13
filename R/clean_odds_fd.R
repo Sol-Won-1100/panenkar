@@ -215,7 +215,8 @@ clean_odds_fde <- function(file){
     arrange(desc(match_id)) %>% # remove this line - not needed
     filter(!is.na(odds)) %>%
     left_join(bookmaker_lookup, by = "football_data_code") %>%
-    select(match_id:away_team, measurement:selection, odds)
+    select(match_id:away_team, measurement:selection, odds) %>%
+    mutate(odds = as.numeric(odds))
   
   
   return(fd)
