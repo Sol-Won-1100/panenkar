@@ -307,7 +307,7 @@ clean_results_fde <- function(file){
   col_names_lookup <- tribble(
     ~dirty,       ~clean,
     # **********/ ***********
-    
+    "Season",     "season_id",
     "Date",       "match_date",
     "Home",       "home_team",
     "Away",       "away_team",
