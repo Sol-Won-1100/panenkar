@@ -11,7 +11,7 @@
 #' @examples
 #' result(2, 1)
 
-result <- Vectorize(function(home_goals, away_goals){
+calc_result <- Vectorize(function(home_goals, away_goals){
   
   if(is.na(home_goals)){
     return(NA)

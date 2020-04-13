@@ -16,7 +16,7 @@
 #' @examples
 #' See the function clean_results_fd for an implementation
 
-add_independent_features <- function(x){
+add_independent_features_fd <- function(x){
   
   features <- c("home_goals_half2",
                 "away_goals_half2",
