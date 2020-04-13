@@ -96,7 +96,7 @@ add_independent_feature_fd <- function(x, feature){
     x <-  mutate(x, match_id = paste0(competition_id, ".", match_date, ".", 
                                       home_team, ".", away_team))
   } else {
-    warning("unknown feature supplied")
+    warning(paste0("unknown feature supplied ", feature))
   }
   
   return(x)

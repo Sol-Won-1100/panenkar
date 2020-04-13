@@ -133,7 +133,7 @@ clean_results_fdm2 <- function(file){
     "B365CD",     "odds_closing_result_draw_bet365",
     "B365CA",     "odds_closing_result_away_bet365",
     "BWCH",       "odds_closing_result_home_betandwin",
-    "BWCD",       "odds_closing_result_c_betandwin",
+    "BWCD",       "odds_closing_result_draw_betandwin",
     "BWCA",       "odds_closing_result_away_betandwin",
     "IWCH",       "odds_closing_result_home_interwetten",
     "IWCD",       "odds_closing_result_draw_interwetten",
@@ -226,7 +226,10 @@ clean_results_fdm2 <- function(file){
   fd_clean <- fd_clean_names %>%
     mutate(match_date = dmy(match_date),
            season_id = season_id,
-           competition_id = competition_id) %>%
+           competition_id = competition_id,
+           num_bookmakers_ah_betbrain = as.numeric(num_bookmakers_ah_betbrain),
+           handicap_size_ah_home_betbrain = as.numeric(handicap_size_ah_home_betbrain),
+           odds_closing_result_home_pinnacle = as.numeric(odds_closing_result_home_pinnacle)) %>%
     distinct(.keep_all = TRUE) %>%
     add_independent_features_fd()
 
