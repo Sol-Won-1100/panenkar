@@ -61,7 +61,7 @@ clean_results_fdm <- function(file){
   
   col_names_lookup <- tribble(
     ~dirty,       ~clean,
-    # -----------/---------------------------------
+    # ***********/ ***********
     
     "Date",       "match_date",
     "HomeTeam",   "home_team",
@@ -306,7 +306,7 @@ clean_results_fde <- function(file){
   
   col_names_lookup <- tribble(
     ~dirty,       ~clean,
-    # -----------/---------------------------------
+    # **********/ ***********
     
     "Date",       "match_date",
     "Home",       "home_team",
@@ -512,7 +512,7 @@ clean_results_fde <- function(file){
   
   fd_clean <- fd_clean_names %>%
     mutate(match_date = dmy(match_date),
-           season_id = season_id = str_replace(season_id, "/", "_"),
+           season_id = str_replace(season_id, "/", "_"),
            competition_id = competition_id,
            num_bookmakers_ah_betbrain = as.numeric(num_bookmakers_ah_betbrain),
            handicap_size_ah_home_betbrain = as.numeric(handicap_size_ah_home_betbrain),
