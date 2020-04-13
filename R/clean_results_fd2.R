@@ -231,7 +231,7 @@ clean_results_fdm2 <- function(file){
     add_independent_features_fd()
 
     
-  return(fd_features)
+  return(fd_clean)
 }
 
 # Features to add
