@@ -39,7 +39,7 @@ add_independent_features_fd <- function(x){
 #' @title Add Independent Feature Football Data
 #'
 #' @description Add time independent features to football data results dataset. 
-#' This is a convienient wrapper to add all the features in a single line.
+#' 
 #'
 #' @param x results dataset from football data which with column names cleaned
 #' @param feature see the function add_independent_features_fd for a list of 
