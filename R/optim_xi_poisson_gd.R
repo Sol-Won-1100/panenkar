@@ -1,6 +1,6 @@
 
-optim_xi_goal_difference <- function(xi, results_estimate_xi, match_rows, 
-                                     goal_difference_actual){
+optim_xi_poisson_gd <- function(xi, results_estimate_xi, match_rows, 
+                                goal_difference_actual){
   
   goal_difference_predicted <- numeric(length = length(match_rows))
   
