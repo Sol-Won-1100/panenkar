@@ -11,7 +11,7 @@
 #'       
 #' @export
 
-calc_time_weights_exp <- function(match_dates, current_date, xi){
+calc_time_weights_exp <- function(match_dates, current_date, xi = 0.0016){
   
   days_difference <- as.numeric(current_date - match_dates)
   
