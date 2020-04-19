@@ -175,6 +175,8 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
     
     if(!is.na(competition_id_above)){
       teams_previous_above <- teams_lookup_above_split[[i - 1]]$team
+    } else {
+      teams_previous_above <- NA
     }
     
     teams_lookup_split[[i]] <- teams_lookup_split[[i]] %>% 
