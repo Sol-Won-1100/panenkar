@@ -172,7 +172,10 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
   
   for(i in 2:length(teams_lookup_split)){
     teams_previous <- teams_lookup_split[[i - 1]]$team
-    teams_previous_above <- teams_lookup_above_split[[i - 1]]$team
+    
+    if(!is.na(competition_id_above)){
+      teams_previous_above <- teams_lookup_above_split[[i - 1]]$team
+    }
     
     teams_lookup_split[[i]] <- teams_lookup_split[[i]] %>% 
       mutate(
@@ -215,11 +218,20 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
   return(x_competition)
 }
 
+#' @title Mutate Season ID
+#'
+#' @description Helper for add_promotion_relegation
+#'
+#' @param .x results database
+#' @param .season_id season_id
+#' 
+#' @return .x with season_id variable
 
-
-
-
-
+mutate_season_id <- function(.x, .season_id){
+  
+  mutate(.x, season_id = .season_id)
+  
+}
 
 #' @title Add Spell
 #'
