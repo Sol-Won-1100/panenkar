@@ -37,7 +37,7 @@ add_dependent_features_fd <- function(x){
 #' @param x results database
 
 add_dependent_feature_fd <- function(x, feature){
-  
+
   if(feature == "match_numbers_season"){
     x <- add_match_numbers_season(x)
     
@@ -109,7 +109,7 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
  
   # Pull out the required competition data and for competitions above and below
   # in the league system for that particular league from metadata
-  
+  print(.competition_id)
   row_competition_id <- which(.metadata$competition_id == .competition_id)
   
   tier <- extract_element(.metadata, row_competition_id, competition_tier) 
@@ -216,7 +216,7 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
               by = c("away_team" = "team", "competition_id", "season_id")) %>%
     rename(away_promoted_into = promoted_into,
            away_relegated_into = relegated_into)
-  
+  print(x_competition)
   return(x_competition)
 }
 
