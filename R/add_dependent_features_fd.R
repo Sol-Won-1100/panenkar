@@ -46,7 +46,7 @@ add_dependent_feature_fd <- function(x, feature){
     metadata <- get_metadata(output_format = "tibble")
     
     x <- metadata$competition_id %>%
-      map_dfr(add_promotion_relegation, x, metadata)
+      map_dfr(add_promotion_relegation, .x = x, .metadata = metadata)
     
   } else {
     warning(paste0("unknown feature supplied ", feature))
@@ -106,7 +106,7 @@ add_match_numbers_season <- function(x){
 #' @param x results database
 
 add_promotion_relegation <- function(.competition_id, .x, .metadata){
-
+ 
   # Pull out the required competition data and for competitions above and below
   # in the league system for that particular league from metadata
   
