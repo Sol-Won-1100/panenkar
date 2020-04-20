@@ -311,7 +311,7 @@ get_metadata <- function(competition_ids = NA,
   ## Austria -------------------------------------------------------------------
   
   aus_bl <- arg_pd
-  aus_bl$competition_id <- "aus_b1"
+  aus_bl$competition_id <- "aus_bl"
   aus_bl$competition_region <- "austria"
   aus_bl$competition_alias <- NA
   aus_bl$competition_name <- "austria_bundesliga"
@@ -485,7 +485,7 @@ get_metadata <- function(competition_ids = NA,
                    tur_sl = tur_sl,
                    gre_sl = gre_sl,
                    arg_pd = arg_pd,
-                   aus_b1 = aus_b1,
+                   aus_bl = aus_bl,
                    bra_sa = bra_sa,
                    chi_sl = chi_sl,
                    den_sl = den_sl,
