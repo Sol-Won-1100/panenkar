@@ -39,7 +39,7 @@ allocate_sets <- function(results,
   
   results$set <- ""
   
-  for (i in 1:length(sets_end_row)) {
+  for (i in 1:length(sets_start_row)) {
     results <- results %>% 
       mutate(set = if_else(row_number() >= sets_start_row[i], 
                            names(set_sizes)[i], set))
