@@ -16,40 +16,34 @@
 #' @export
 
 allocate_sets <- function(results, 
-                          set_sizes = c("set1" = 0.1, "set2" = 0.3, 
-                                        "set3" = 0.6)){
+                          set_sizes = c(set1 = 0.1, set2 = 0.3, set3 = 0.6)) {
   
-  if(is.null(names(set_sizes))){
+  if (is.null(names(set_sizes))) {
     names(set_sizes) <- paste0("set", 1:length(set_sizes))
   }
   
   num_matches <- nrow(results)
-  num_matches <- 100
-  set_sizes <- set_sizes / sum(set_sizes) # Incase decimals supplied no sum to 1
   
-  # We cut the sets up to the percentile listed
-  
+  set_sizes <- set_sizes/sum(set_sizes)
   set_percentile_end <- set_sizes
   
-  for(i in 2:length(set_percentile_end)){
+  for (i in 2:length(set_percentile_end)) {
     set_percentile_end[i] <- set_percentile_end[i] + set_percentile_end[i - 1]
   }
   
-  set_percentile_start <- c(0, set_cuts[-length(set_percentile_end)])
+  set_percentile_start <- c(0, set_percentile_end[-length(set_percentile_end)])
   
-  sets_start_row <- 1:num_matches %>% quantile(set_percentile_start) %>% round()
-  sets_end_row <- c(sets_start_row[-1] - 1, num_matches)
+  sets_start_row <- 1:num_matches %>% 
+    quantile(set_percentile_start) %>% 
+    round()
   
   results$set <- ""
   
-  for(i in 1:length(sets_end_row)){
-    
+  for (i in 1:length(sets_end_row)) {
     results <- results %>% 
-      mutate(set = if_else(row_number() >= sets_start_row[i], names(sets)[i], 
-                           set))
+      mutate(set = if_else(row_number() >= sets_start_row[i], 
+                           names(set_sizes)[i], set))
   }
   
   return(results)
-  
 }
-
