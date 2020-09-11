@@ -15,8 +15,7 @@
 #' 
 #' @export
 
-allocate_sets <- function(results, 
-                          set_sizes = c(set1 = 0.1, set2 = 0.3, set3 = 0.6)) {
+allocate_sets <- function(results, set_sizes = c(set1 = 0.1, set2 = 0.2, set3 = 0.2, set4 = 0.5)) {
   
   if (is.null(names(set_sizes))) {
     names(set_sizes) <- paste0("set", 1:length(set_sizes))
