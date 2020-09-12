@@ -12,8 +12,7 @@
 #'       
 #' @export
 
-build_model_data_poisson <- function(results, x1, x2, current_date, 
-                                     xi = 0.0016){
+poisson_build_model_data <- function(results, x1, x2, current_date, xi = 0.0016){
   
   x1 <- enquo(x1)
   x2 <- enquo(x2)
