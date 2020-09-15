@@ -1,35 +1,44 @@
 
-#' Calculate Ranked Probability Score
+#' Calculate Rank Probability Score
 #' 
-#' Calculate the ranked probability score
+#' Calculates the rank probability score of forecasts
 #' 
-#' @param predictions matrix, data.frame or tibble of probabilties, columns are 
-#' outcomes and rows are observations
-#' @param observed same as predictions, typically a 1 indicates the outcome 
-#' occured and 0 it didnt though you could use bookmakers implied probabilties
-#' 
-#' @return vector of scores
-#' 
-#' @export
+#' @param predicted a matrix, data frame or tibble of probabilities, each row is a match and each column is an outcome
+#'                  e.g. home, draw, away. Columns must sum to 1.
+#' @param observed a vector of actual outcomes corresponding to the columns in predicted e.g if 1 then the outcome in
+#'                 the first column of predicted actually occurred
+#' @param average_all default FALSE is TRUE the usual output, a vector of scores for each match, is averaged so only a
+#'                    single value is returned.
 
-calc_rps <- function(predictions, observed){
+calc_rps <- function(predicted, observed, average_all = FALSE){
   
-  predictions <- as.matrix(predictions)
-  observed <- as.matrix(observed)
+  predicted <- as.matrix(predicted)
   
-  ncat <- ncol(predictions)
-  npred <- nrow(predictions)
+  num_outcomes <- ncol(predicted)
+  num_predicted <- nrow(predicted)
   
-  rps <- numeric(npred)
+  rps <- numeric(num_predicted)
   
-  for (rr in 1:npred){
-    obsvec <- rep(0, ncat)
-    obsvec[observed[rr]] <- 1
+  for (i in 1:num_predicted){
+    
+    observed_vector <- rep(0, num_outcomes)
+    observed_vector[observed[i]] <- 1
     cumulative <- 0
-    for (i in 1:ncat){
-      cumulative <- cumulative + (sum(predictions[rr,1:i]) - sum(obsvec[1:i]))^2
+    
+    for (j in 1:num_outcomes){
+      
+      cumulative <- cumulative + (sum(predicted[i, 1:j]) - sum(observed_vector[1:j])) ^ 2
+      
     }
-    rps[rr] <- (1/(ncat-1))*cumulative
+    
+    rps[i] <- (1 / (num_outcomes - 1)) * cumulative
+    
+  }
+  
+  if (average_all == TRUE) {
+    
+    rps <- mean(rps, na.rm = TRUE)
+    
   }
   
   return(rps)
