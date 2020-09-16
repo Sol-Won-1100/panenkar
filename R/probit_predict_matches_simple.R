@@ -8,9 +8,14 @@
 
 probit_predict_matches_simple <- function (fixtures, fit, market = "result") {
   
-  list(home_team = fixtures$home_team, away_team = fixtures$away_team) %>%
+  
+  fit_vars <- names(fit$xlevels)
+  
+  predictions <- fixtures %>%
+    select(all_of(fit_vars)) %>%
+    map(~unlist(.)) %>%
     pmap_dfr(probit_predict_match, fit, market)
 
+  return(predictions)
   
 }
-

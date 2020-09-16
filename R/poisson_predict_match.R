@@ -13,7 +13,35 @@
 #'        
 #' @return a tibble of probabilities for each outcome
 
-poisson_predict_match <- function(home_team, away_team, fit, max_goals = 8, market = "result", over_under_goals = 2.5){
+poisson_predict_match <- function(home_team, away_team, fit,  attack_promoted_into = NA, defence_promoted_into = NA, 
+                                  attack_relegated_into = NA, away_relegated_into = NA, max_goals = 8, 
+                                  market = "result", over_under_goals = 2.5){
+  
+  # Consistency checks
+  
+  if (!is.na(attack_promoted_into) & is.na(defence_promoted_into)) {
+    
+    stop("attack_promoted_into include but defence_promoted_into NA")
+    
+  } 
+  
+  if (is.na(attack_promoted_into) & !is.na(defence_promoted_into)) {
+    
+    stop("attack_promoted_into NA but defence_promoted_into included")
+    
+  }   
+  
+  if (!is.na(attack_relegated_into) & is.na(away_relegated_into)) {
+    
+    stop("attack_relegated_into include but away_relegated_into NA")
+    
+  } 
+  
+  if (is.na(attack_relegated_into) & !is.na(away_relegated_into)) {
+    
+    stop("attack_relegated_into NA but away_relegated_into included")
+    
+  }   
   
   home_team <- unlist(home_team)
   away_team <- unlist(away_team)
@@ -51,6 +79,21 @@ poisson_predict_match <- function(home_team, away_team, fit, max_goals = 8, mark
   
   predict_data_home <- tibble(location = 1, attack = home_team, defence = away_team)
   predict_data_away <- tibble(location = 0, attack = away_team, defence = home_team)
+  
+  if (!is.na(attack_promoted_into)) {
+    
+    predict_data_home <- tibble(attack_promoted_into, defence_promoted_into) %>% bind_cols(predict_data_home, .)
+    predict_data_away <- tibble(attack_promoted_into, defence_promoted_into) %>% bind_cols(predict_data_away, .)
+    
+  }
+  
+  if (!is.na(attack_relegated_into)) {
+    
+    predict_data_home <- tibble(attack_relegated_into, defence_relegated_into) %>% bind_cols(predict_data_home, .)
+    predict_data_away <- tibble(attack_relegated_into, defence_relegated_into) %>% bind_cols(predict_data_away, .)   
+    
+  }
+  
   home_goals_predicted <- predict(fit, predict_data_home, type = "response")
   away_goals_predicted <- predict(fit, predict_data_away, type = "response")
   
