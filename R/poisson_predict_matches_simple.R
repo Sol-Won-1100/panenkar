@@ -8,14 +8,8 @@
 
 poisson_predict_matches_simple <- function (fixtures, fit, max_goals = 8, market = "result", over_under_goals = 2.5) {
   
-  fit_vars <- names(fit$xlevels)
-  
-  predictions <- fixtures %>%
-    select(all_of(fit_vars)) %>%
-    map(~unlist(.)) %>%
-    pmap_dfr(probit_predict_match, fit, market, max_goals, market, over_under_goals)
-  
-  return(predictions)
+  list(home_team = fixtures$home_team, away_team = fixtures$away_team) %>%
+    pmap_dfr(poisson_predict_match, fit, max_goals, market, over_under_goals)
   
 }
 
