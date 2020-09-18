@@ -33,7 +33,7 @@ poisson_fit <- function(model_data){
     
   } else {
     
-    f <- forumla(goals ~ location + attack + defence)
+    f <- formula(goals ~ location + attack + defence)
     
   }
   
