@@ -7,10 +7,10 @@
 #'        and return see poisson_predict_match.R
 
 poisson_predict_matches_update <- function (training_set, test_set, max_goals = 8, market = "result", 
-                                            over_under_goals = 2.5) {
+                                            over_under_goals = 2.5, promoted_relegated = FALSE) {
   
   match_dates <- unique(test_set$match_date)
-  model_data <- poisson_build_model_data(training_set, home_goals, away_goals, match_dates[1])
+  model_data <- poisson_build_model_data(training_set, home_goals, away_goals, match_dates[1], promoted_relegated)
   fit <- poisson_fit(model_data)
   store_predictions <- list()
   
@@ -23,7 +23,8 @@ poisson_predict_matches_update <- function (training_set, test_set, max_goals = 
     
     if (j != length(match_dates)) {
       
-      model_data <- poisson_build_model_data(training_set, home_goals, away_goals, match_dates[j + 1])
+      model_data <- poisson_build_model_data(training_set, home_goals, away_goals, match_dates[j + 1], 
+                                             promoted_relegated)
       fit <- poisson_fit(model_data) 
       
     }
