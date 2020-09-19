@@ -50,7 +50,16 @@ add_dependent_feature_fd <- function(x, feature) {
     
   } else if (feature == "add_spell") {
     
-    x <- add_spell(x)
+    x = results %>% select(season_id, home_team, away_team, competition_id)
+    competition_ids <- x$competition_id %>% unique()
+    teams_with_spell <- map_dfr(competition_ids, add_spell, x)
+    
+    x <- x %>%
+      left_join(teams_with_spell, by = c("home_team" = "team", "season_id")) %>%
+      rename(home_team_spell = spell) %>%
+      left_join(teams_with_spell, by = c("away_team" = "team", "season_id")) %>%
+      rename(away_team_spell = spell)
+    
     
   } else {
     
@@ -226,6 +235,8 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
   return(x_competition)
 }
 
+## I think I can delete this?
+
 #' @title Mutate Season ID
 #'
 #' @description Helper for add_promotion_relegation
@@ -241,25 +252,24 @@ mutate_season_id <- function(.x, .season_id){
   
 }
 
+
 #' @title Add Spell
 #'
-#' @description Adds in which spell, since the start of the dataset, the teams
-#' are currently in
+#' @description Adds in which spell, since the start of the dataset, the teams are currently in
 #'
-#' @param x results database
-
-
-.x <- results %>% select(competition_id, season_id, match_date, home_team, away_team)
-metadata <- get_metadata()
-.competition_id <- names(metadata)[1]
+#' @param .competition_id competition_id to construct spells dataset for
+#' @param .x results database
+#' 
+#' @note A helper function for add_dependent_feature, see above
+#' @return 
 
 add_spell <- function(.competition_id, .x) {
-  
+
   x_split_season_id <- .x %>% 
     filter(competition_id == .competition_id) %>%
     group_split(, season_id)
   
-  season_ids <- x_split_season_id %>% map(2) %>% map(1) %>% unlist()
+  season_ids <- x_split_season_id %>% map("season_id") %>% map(1) %>% unlist()
   
   teams_by_season <- x_split_season_id %>%
     map(~select(., home_team, away_team)) %>%
@@ -273,7 +283,7 @@ add_spell <- function(.competition_id, .x) {
     pivot_wider(names_from = "season_id", values_from = "spell")
 
   teams_by_season[is.na(teams_by_season)] <- 0
-  
+
   teams_with_spell <- teams_by_season %>%
     pivot_longer(cols = season_ids, names_to = "season_id", values_to = "present") %>%
     group_by(team) %>%
@@ -282,26 +292,38 @@ add_spell <- function(.competition_id, .x) {
     group_split() %>%
     map(calc_spell) %>%
     map(select, -present, -cum_present) %>%
-    bind_rows()
+    bind_rows() %>%
+    mutate(competition_id = .competition_id)
   
-
+  return(teams_with_spell)
 
 }
 
 
-# Helper for add spell
+#' @title Calculate Spell
+#'
+#' @description Adds in which spell, since the start of the dataset, the teams are currently in
+#'
+#' @param .competition_id competition_id to construct spells dataset for
+#' @param .x results database
+#' 
+#' @note A helper function for add_dependent_feature, see above
+#' @return 
 
 calc_spell <- function (x) {
-  
-  for (i in 2:nrow(x)) {
+
+  if (nrow(x) > 1) {
     
-    present_current <- unlist(x[i, "present"])
-    present_previous <- unlist(x[i - 1, "present"])
-    
-    
-    if (present_current == 1 & present_previous == 0) {
+    for (i in 2:nrow(x)) {
       
-      x[i:nrow(x), "spell"] <- unlist(x[i - 1, "spell"]) + 1
+      present_current <- unlist(x[i, "present"])
+      present_previous <- unlist(x[i - 1, "present"])
+      
+      if (present_current == 1 & present_previous == 0) {
+        
+        x[i:nrow(x), "spell"] <- unlist(x[i - 1, "spell"]) + 1
+        
+      }
       
     }
     
