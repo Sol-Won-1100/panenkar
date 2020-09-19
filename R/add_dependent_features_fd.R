@@ -18,7 +18,9 @@ add_dependent_features_fd <- function(x){
   features <- c("match_numbers_season", "promotion_relegation", "add_spell")
   
   for(i in seq_along(1:length(features))){
+
     x <- add_dependent_feature_fd(x, features[i])
+
   }
   
   return(x)
@@ -50,14 +52,14 @@ add_dependent_feature_fd <- function(x, feature) {
     
   } else if (feature == "add_spell") {
     
-    x = results %>% select(season_id, home_team, away_team, competition_id)
-    competition_ids <- x$competition_id %>% unique()
-    teams_with_spell <- map_dfr(competition_ids, add_spell, x)
+    metadata <- get_metadata(output_format = "tibble")
+
+    teams_with_spell <- map_dfr(metadata$competition_id, add_spell, x)
     
     x <- x %>%
-      left_join(teams_with_spell, by = c("home_team" = "team", "season_id")) %>%
+      left_join(teams_with_spell, by = c("home_team" = "team", "season_id", "competition_id")) %>%
       rename(home_team_spell = spell) %>%
-      left_join(teams_with_spell, by = c("away_team" = "team", "season_id")) %>%
+      left_join(teams_with_spell, by = c("away_team" = "team", "season_id", "competition_id")) %>%
       rename(away_team_spell = spell)
     
     
@@ -285,7 +287,7 @@ add_spell <- function(.competition_id, .x) {
   teams_by_season[is.na(teams_by_season)] <- 0
 
   teams_with_spell <- teams_by_season %>%
-    pivot_longer(cols = season_ids, names_to = "season_id", values_to = "present") %>%
+    pivot_longer(cols = all_of(season_ids), names_to = "season_id", values_to = "present") %>%
     group_by(team) %>%
     mutate(cum_present = cumsum(present), spell = 1) %>%
     filter(cum_present > 0) %>%
