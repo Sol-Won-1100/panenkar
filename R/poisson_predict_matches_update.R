@@ -8,7 +8,7 @@
 
 poisson_predict_matches_update <- function (training_set, test_set, xi = 0.0016, max_goals = 8, market = "result", 
                                             over_under_goals = 2.5, zero_inflated = FALSE) {
-  
+
   match_dates <- unique(test_set$match_date)
   model_data <- poisson_build_model_data(training_set, home_goals, away_goals, match_dates[1], xi)
   fit <- poisson_fit(model_data, zero_inflated)
@@ -17,7 +17,9 @@ poisson_predict_matches_update <- function (training_set, test_set, xi = 0.0016,
   for (j in seq_along(1:length(match_dates))) {
     
     fixtures <- filter(test_set, match_date == match_dates[j])
-    store_predictions[[j]] <- poisson_predict_matches_simple(fixtures, fit, zero_inflated)
+
+    store_predictions[[j]] <- poisson_predict_matches_simple(fixtures, fit, max_goals, market, over_under_goals, 
+                                                             zero_inflated)
 
     training_set <- bind_rows(training_set, fixtures)
     

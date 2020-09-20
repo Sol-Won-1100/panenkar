@@ -17,7 +17,7 @@
 
 poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, market = "result", over_under_goals = 2.5,
                                   zero_inflated = FALSE){
-  
+
   # Consistency checks
   
   home_team <- unlist(home_team)

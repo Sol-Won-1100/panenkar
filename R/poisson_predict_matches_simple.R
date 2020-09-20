@@ -8,9 +8,13 @@
 
 poisson_predict_matches_simple <- function (fixtures, fit, max_goals = 8, market = "result", over_under_goals = 2.5,
                                             zero_inflated = FALSE) {
-  
+
   list(home_team = fixtures$home_team, away_team = fixtures$away_team) %>%
-    pmap_dfr(poisson_predict_match, fit, max_goals, market, over_under_goals, zero_inflated)
-  
+    pmap_dfr(poisson_predict_match, 
+             fit = fit, 
+             max_goals = max_goals, 
+             market = market, 
+             over_under_goals = over_under_goals, 
+             zero_inflated = zero_inflated)
 }
 
