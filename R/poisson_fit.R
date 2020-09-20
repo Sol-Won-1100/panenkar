@@ -1,17 +1,29 @@
 
 #' Poisson Fit
 #' 
-#' A wrapper for the glm function with the specs required for poisson regression model
+#' A wrapper for the glm function with the specs required for poisson regression model and similar for the zero inflated
+#' poisson model
 #' 
 #' @param model_data output from poisson_build_model_data function
-#' 
-#' @note To make more robust do a check if attack_promoted_into is there but not defence_promoted_into and vice versa 
+#' @param zero_inflated default FALSE, if TRUE will use zero inflated poisson
 #' 
 #' @return fitted model
 
 
-poisson_fit <- function(model_data){
+poisson_fit <- function(model_data, zero_inflated = FALSE){
 
-  glm(goals ~ location + attack + defence, family = poisson(link = log), data = model_data, weight = time_weight)
+  if (zero_inflated == FALSE) {
+    
+    glm(goals ~ location + attack + defence, family = poisson(link = log), data = model_data, weight = time_weight)
+    
+  } else {
+    
+    suppressWarnings(
+      zeroinfl(goals ~ location + attack + defence, data = model_data, weight = time_weight)
+    ) # Often gives warnings about sub-standard fits
+    
+    
+  }
+  
   
 }

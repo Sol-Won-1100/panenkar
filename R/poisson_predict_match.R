@@ -10,18 +10,32 @@
 #' @param market one of "result", "over_under" or "both_teams_to_score"
 #' @param over_under_goals a number usual 0.5, 1.5, 2.5, etc though could be a whole number. Only comes into play if 
 #'        market is "over_under"
+#' @param zero_inflated default FALSE, if TRUE will use zero inflated poisson
 #'        
 #' @return a tibble of probabilities for each outcome
 
-poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, market = "result", over_under_goals = 2.5){
+
+poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, market = "result", over_under_goals = 2.5,
+                                  zero_inflated = FALSE){
   
   # Consistency checks
   
   home_team <- unlist(home_team)
   away_team <- unlist(away_team)
   
-  teams_attack <- fit$xlevels$attack
-  teams_defence <- fit$xlevels$defence
+  if (zero_inflated == FALSE) {
+    
+    teams_attack <- fit$xlevels$attack
+    teams_defence <- fit$xlevels$defence    
+    
+  } else {
+    
+    teams_attack <- fit$levels$attack
+    teams_defence <- fit$levels$defence        
+    
+    
+  }
+
 
   if (!(home_team %in% teams_attack) | !(home_team %in% teams_defence) | !(away_team %in% teams_attack) |
       !(away_team %in% teams_defence)) {
@@ -59,8 +73,27 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, mar
   
   # Tabulate outcomes
   
-  goals_table <- dpois(0:max_goals, home_goals_predicted) %o% dpois(0:max_goals, away_goals_predicted)
+  if (zero_inflated == FALSE) {
+    
+    goals_table <- dpois(0:max_goals, home_goals_predicted) %o% dpois(0:max_goals, away_goals_predicted)
+    
+  } else {
+    
+    home_goals_probs <- predict(fit, predict_data_home, type = "prob") %>%
+      t() %>%
+      as_tibble() %>%
+      unlist()
+      
+      
+    away_goals_probs <- predict(fit, predict_data_away, type = "prob") %>%
+      t() %>%
+      as_tibble() %>%
+      unlist()
+    
+    goals_table <- home_goals_probs %o% away_goals_probs
 
+  }
+  
   if (market == "result") {
 
     home_prob <- sum(goals_table[lower.tri(goals_table)])
