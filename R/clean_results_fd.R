@@ -273,7 +273,8 @@ clean_results_fdm <- function(file){
            handicap_size_ah_home_betbrain = as.numeric(handicap_size_ah_home_betbrain),
            odds_closing_result_home_pinnacle = as.numeric(odds_closing_result_home_pinnacle)) %>%
     distinct(.keep_all = TRUE) %>%
-    add_independent_features_fd()
+    add_independent_features_fd() %>%
+    filter(!is.na(home_team), !is.na(away_team))
   
   
   return(fd_clean)

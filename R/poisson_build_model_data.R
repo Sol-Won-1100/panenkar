@@ -9,10 +9,12 @@
 #' @param x2 away goals, uses tidy eval so can specify away_goals_half1 etc
 #' @param current_date what date to calculate the exponential time weight from
 #' @param xi the time weight parameter
+#' @param weight_cut_off if a weight is less than this cut off that row is dropped from the model data for efficiency
+#' purposes
 #'       
 #' @export
 
-poisson_build_model_data <- function(results, x1, x2, current_date, xi = 0.0016){
+poisson_build_model_data <- function(results, x1, x2, current_date, xi = 0.0016, weight_cut_off = NA){
   
   x1 <- enquo(x1)
   x2 <- enquo(x2)
@@ -27,7 +29,13 @@ poisson_build_model_data <- function(results, x1, x2, current_date, xi = 0.0016)
     set_colnames(c("match_date", "attack", "defence", "goals")) %>%
     mutate(location = 0, time_weight = model_data_home$time_weight)
   
-  model_data <- bind_rows(model_data_home, model_data_away) %>% drop_na()
+  model_data <- bind_rows(model_data_home, model_data_away) %>% drop_na() 
+  
+  if (!is.na(weight_cut_off)) {
+    
+    model_data <- filter(model_data, time_weight >= weight_cut_off)
+    
+  }
   
   return(model_data)
 }
