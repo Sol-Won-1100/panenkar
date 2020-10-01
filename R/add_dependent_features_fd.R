@@ -121,11 +121,19 @@ add_match_numbers_season <- function(x){
 #' relegated to a league for that season. 
 #'
 #' @param x results database
+# .x <- wd$data_clean %>%
+#   paste0("database-results.rds") %>%
+#   read_rds()
+# 
+# .metadata <- get_metadata(output_format = "tibble")
+# 
+# .competition_id = "eng_champ"
+
 
 add_promotion_relegation <- function(.competition_id, .x, .metadata){
   
-  # Pull out the required competition data and for competitions above and below
-  # in the league system for that particular league from metadata
+  # Pull out the required competition data and for competitions above and below in the league system for that particular 
+  # league from metadata
   
   row_competition_id <- which(.metadata$competition_id == .competition_id)
   
@@ -134,24 +142,26 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
   
   # League in tier below 
   
-  metadata_below <- .metadata %>% 
-    filter(competition_tier == tier + 1, competition_region == country)
+  metadata_below <- filter(.metadata, competition_tier == tier + 1, competition_region == country)
   
-  if(nrow(metadata_below) > 0){
+  if (nrow(metadata_below) > 0) {
+    
     competition_id_below <- extract_element(metadata_below, 1, competition_id)
     
   } else {
+    
     competition_id_below <- NA
     
   }
   
-  metadata_above <- .metadata %>% 
-    filter(competition_tier == tier - 1, competition_region == country)
+  metadata_above <- filter(.metadata, competition_tier == tier - 1, competition_region == country)
   
-  if(nrow(metadata_above) > 0){
+  if (nrow(metadata_above) > 0) {
+    
     competition_id_above <- extract_element(metadata_above, 1, competition_id)
     
   } else {
+    
     competition_id_above <- NA
     
   }
@@ -161,13 +171,14 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
   
   teams_lookup <- x_competition %>%
     extract_teams_by_season() %>%
-    mutate(promoted_into = NA_real_, relegated_into = NA_real_)
+    mutate(promoted_into = NA_real_, relegated_into = NA_real_, promoted_from = NA_real_, relegated_from = NA_real_)
   
   teams_lookup_split <- group_split(teams_lookup, season_id)
   
   # Promoted teams (can infer teams relegated from above by elimination)
   
-  if(!is.na(competition_id_above)){
+  if (!is.na(competition_id_above)) {
+    
     teams_lookup_above <- .x %>%
       filter(competition_id == competition_id_above) %>%
       extract_teams_by_season()
@@ -175,9 +186,10 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
     teams_lookup_above_split <- teams_lookup_above %>%
       group_split(season_id) %>%
       set_names(unique(teams_lookup_above$season_id))
+    
   }  
   
-  # Logic:
+  ## Derive the into variables
   
   # If team was in the league last season then 0 for promoted into relegated
   # into
@@ -187,37 +199,57 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
   # Now only look at tier above for non-top tier competitions. If team not in 
   # league last season and in tier above last season then relegated into
   
-  for(i in 2:length(teams_lookup_split)){
+  for (i in 2:length(teams_lookup_split)) {
+    
     teams_previous <- teams_lookup_split[[i - 1]]$team
     
-    if(!is.na(competition_id_above)){
+    if (!is.na(competition_id_above)) {
+      
       teams_previous_above <- teams_lookup_above_split[[i - 1]]$team
+      
     } else {
+      
       teams_previous_above <- NA
+      
     }
     
     teams_lookup_split[[i]] <- teams_lookup_split[[i]] %>% 
-      mutate(
-        # Present last season
-        promoted_into = if_else(team %in% teams_previous, 0, promoted_into),
-        relegated_into = promoted_into,
-        
-        # Top tier and not present so must be promoted
-        promoted_into = if_else(is.na(promoted_into) & tier == 1, 1, 
-                                promoted_into),
-        relegated_into = if_else(is.na(relegated_into) & tier == 1, 0, 
-                                 relegated_into),
-        
-        # Not top tier and not present so check competition_above
-        relegated_into = if_else(is.na(relegated_into) & team %in% 
-                                   teams_previous_above, 1, relegated_into),
-        promoted_into = if_else(is.na(promoted_into) & relegated_into == 1, 0,
-                                promoted_into),
-        
-        # Not top tier and not present and checked competition_above infer below
-        relegated_into = if_else(is.na(relegated_into), 0, relegated_into),
-        promoted_into = if_else(is.na(promoted_into), 1, promoted_into)
-      )
+      mutate(promoted_into = if_else(team %in% teams_previous, 0, promoted_into),
+             relegated_into = promoted_into,
+             promoted_into = if_else(is.na(promoted_into) & tier == 1, 1,  promoted_into),
+             relegated_into = if_else(is.na(relegated_into) & tier == 1, 0, relegated_into),
+             relegated_into = if_else(is.na(relegated_into) & team %in%  teams_previous_above, 1, relegated_into),
+             promoted_into = if_else(is.na(promoted_into) & relegated_into == 1, 0, promoted_into),
+             relegated_into = if_else(is.na(relegated_into), 0, relegated_into),
+             promoted_into = if_else(is.na(promoted_into), 1, promoted_into))
+    
+  }
+  
+  ## Derive the from variables
+  
+  for (i in 1:(length(teams_lookup_split) - 1)) {
+    
+    teams_next <- teams_lookup_split[[i + 1]]$team
+    
+    if (!is.na(competition_id)) {
+      
+      teams_next_above <- teams_lookup_above_split[[i + 1]]$team
+      
+    } else {
+      
+      teams_next_above <- NA
+      
+    }
+    
+    teams_lookup_split[[i]] <- teams_lookup_split[[i]] %>%
+      mutate(promoted_from = case_when(team %in% teams_next ~ 0,
+                                       team %in% teams_next_above ~ 1,
+                                       TRUE ~ 0),
+             relegated_from = case_when(team %in% teams_next ~ 0,
+                                        promoted_from == 1 ~ 0,
+                                        TRUE ~ 1)) %>%
+      arrange(desc(relegated_from))
+    
   }
   
   promotion_relegation_lookup <- teams_lookup_split %>%
@@ -225,16 +257,19 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
     mutate(competition_id = .competition_id)
   
   x_competition <- x_competition %>% 
-    left_join(promotion_relegation_lookup, 
-              by = c("home_team" = "team", "competition_id", "season_id")) %>%
+    left_join(promotion_relegation_lookup, by = c("home_team" = "team", "competition_id", "season_id")) %>%
     rename(home_promoted_into = promoted_into, 
-           home_relegated_into = relegated_into) %>%
-    left_join(promotion_relegation_lookup,
-              by = c("away_team" = "team", "competition_id", "season_id")) %>%
-    rename(away_promoted_into = promoted_into,
-           away_relegated_into = relegated_into)
+           home_relegated_into = relegated_into, 
+           home_promoted_from = promoted_from,
+           home_relegated_from = relegated_from) %>%
+    left_join(promotion_relegation_lookup, by = c("away_team" = "team", "competition_id", "season_id")) %>%
+    rename(away_promoted_into = promoted_into, 
+           away_relegated_into = relegated_into, 
+           away_promoted_from = promoted_from,
+           away_relegated_from = relegated_from)
   
   return(x_competition)
+  
 }
 
 ## I think I can delete this?
