@@ -14,7 +14,7 @@
 #' clean_results(file)
 
 clean_results_fd <- function(file, data_type = "main_league"){
-  
+
   if(data_type == "main_league"){
     results <- clean_results_fdm(file)
   } else if(data_type == "extra_league"){

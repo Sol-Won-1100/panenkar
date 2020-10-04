@@ -68,6 +68,8 @@ get_metadata <- function(competition_ids = NA,
                          latest_european_season = "2020_2021",
                          output_format = "list"){
   
+  covid_delayed_season_id <- "2019_2020"
+  
   ## England -------------------------------------------------------------------
   
   eng_pl <- list(
@@ -146,6 +148,7 @@ get_metadata <- function(competition_ids = NA,
   sco_champ$competition_promoted_into <- "sco_prem"
   sco_champ$competition_relegated_into <- "sco_l1"
   sco_champ$football_data$url_suffix <- "SC1"
+  sco_champ$football_data$end_season <- covid_delayed_season_id
   
   sco_l1 <- sco_prem
   sco_l1$competition_id <- "sco_l1"
@@ -156,6 +159,7 @@ get_metadata <- function(competition_ids = NA,
   sco_l1$competition_relegated_into <- "sco_l2"
   sco_l1$football_data$url_suffix <- "SC2"
   sco_l1$football_data$start_season <- "1997_1998"
+  sco_l1$football_data$end_season <- covid_delayed_season_id
   
   sco_l2 <- sco_prem
   sco_l2$competition_id <- "sco_l2"
@@ -166,6 +170,7 @@ get_metadata <- function(competition_ids = NA,
   sco_l2$competition_relegated_into <- NA
   sco_l2$football_data$url_suffix <- "SC3"
   sco_l2$football_data$start_season <- "1997_1998"
+  sco_l2$football_data$end_season <- covid_delayed_season_id
   
   ## Germany -------------------------------------------------------------------
   
