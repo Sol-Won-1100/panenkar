@@ -8,7 +8,7 @@
 #' 
 #' @return tibble with details of teams and season_ids
 #' @export
-#' 
+
 extract_teams_by_season <- function(x){
   
   if(length(unique(x$competition_id)) > 1){
@@ -32,3 +32,17 @@ extract_teams_by_season <- function(x){
   
   return(teams_lookup)
 }
+
+
+#' @title Mutate Season ID
+#'
+#' @description Helper for add_promotion_relegation
+#'
+#' @param .x results database
+#' @param .season_id season_id
+#' 
+#' @return .x with season_id variable
+#' @note Helper function for extract_teams_by_season
+
+mutate_season_id <- function (.x, .season_id) mutate(.x, season_id = .season_id)
+  

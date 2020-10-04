@@ -47,9 +47,14 @@ add_dependent_feature_fd <- function(x, feature) {
   } else if(feature == "promotion_relegation") {
     
     metadata <- get_metadata(output_format = "tibble")
+    competition_ids <- metdata$competition_id
     
-    x <- map_dfr(metadata$competition_id, add_promotion_relegation, x, metadata)
+    x_condensed <- select(x, competition_id, season_id, home_team, away_team, match_id)
     
+    promotion_relegation <- map_dfr(competition_ids, add_promotion_relegation, .x = x_condensed, .metadata = metadata)
+    x <- left_join(x, promotion_relegation, by = "match_id")
+    
+
   } else if (feature == "add_spell") {
     
     metadata <- get_metadata(output_format = "tibble")
@@ -134,6 +139,8 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
   
   # Pull out the required competition data and for competitions above and below in the league system for that particular 
   # league from metadata
+  
+  
   
   row_competition_id <- which(.metadata$competition_id == .competition_id)
   
@@ -247,8 +254,7 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
                                        TRUE ~ 0),
              relegated_from = case_when(team %in% teams_next ~ 0,
                                         promoted_from == 1 ~ 0,
-                                        TRUE ~ 1)) %>%
-      arrange(desc(relegated_from))
+                                        TRUE ~ 1))
     
   }
   
@@ -266,28 +272,14 @@ add_promotion_relegation <- function(.competition_id, .x, .metadata){
     rename(away_promoted_into = promoted_into, 
            away_relegated_into = relegated_into, 
            away_promoted_from = promoted_from,
-           away_relegated_from = relegated_from)
+           away_relegated_from = relegated_from) %>%
+    select(-competition_id, -season_id, -home_team, -away_team)
   
   return(x_competition)
   
 }
 
-## I think I can delete this?
 
-#' @title Mutate Season ID
-#'
-#' @description Helper for add_promotion_relegation
-#'
-#' @param .x results database
-#' @param .season_id season_id
-#' 
-#' @return .x with season_id variable
-
-mutate_season_id <- function(.x, .season_id){
-  
-  mutate(.x, season_id = .season_id)
-  
-}
 
 
 #' @title Add Spell
