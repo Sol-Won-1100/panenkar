@@ -10,15 +10,15 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 Imports: 
-  ordinal
-  readr
-  dplyr
-  purrr
-  magrittr
-  tidyr
-  lubridate
-  ggplot2
-  stringr
+  ordinal,
+  readr,
+  dplyr,
+  purrr,
+  magrittr,
+  tidyr,
+  lubridate,
+  ggplot2,
+  stringr,
   pscl
 
 RoxygenNote: 6.1.1
