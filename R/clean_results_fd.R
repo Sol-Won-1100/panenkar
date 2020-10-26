@@ -225,6 +225,8 @@ clean_results_fdm <- function(file){
     "LBAH",       "num_bookmakers_ah_ladbrokes"
   )
   
+  
+  
   # Read in the dataset
   suppressWarnings(
     suppressMessages(
@@ -275,7 +277,6 @@ clean_results_fdm <- function(file){
     distinct(.keep_all = TRUE) %>%
     add_independent_features_fd() %>%
     filter(!is.na(home_team), !is.na(away_team))
-  
   
   return(fd_clean)
 }
