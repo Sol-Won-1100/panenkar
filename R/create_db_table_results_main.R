@@ -171,9 +171,7 @@ create_db_table_results_main_fd_main <- function (file) {
            is_replay = FALSE,
            is_empty_stadium = FALSE,
            leg = 0,
-           match_date_string = as.character(match_date),
-           match_date_number = as.numeric(str_replace_all(match_date_string, "-", "")),
-           match_id = paste(competition_id, match_date_number, home_team, away_team, sep = "__")) %>%
+           match_id = create_match_id(competition_id, match_date, home_team, away_team)) %>%
     add_missing_col_name("max_home_odds_betbrain") %>%
     add_missing_col_name("max_draw_odds_betbrain") %>%
     add_missing_col_name("max_away_odds_betbrain") %>%
@@ -239,17 +237,6 @@ calc_max_odds <- function(x, col_names_starts_with) {
     row_max(append_col = FALSE)
   
 }
-
-
-
-xx <- row_max(x, x2, x3)
-
-
-
-
-
-mutate_if(x, is.numeric, ~max(., na.rm = TRUE))
-?mutate_if
 
 
 
