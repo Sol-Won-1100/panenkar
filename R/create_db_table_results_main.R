@@ -1,5 +1,12 @@
 
 
+#' Create Database Table Results Main
+#' 
+#' Creates the data frame in the format required by the results main table in the live football database
+#' 
+#' @param file filename of the raw football match data from football-data.co.uk
+#' @param data_type one of fd_main or fd_extra depending on league type
+
 create_db_table_results_main <- function (file, data_type = "fd_main") {
   
   if (data_type == "fd_main") {
@@ -39,7 +46,8 @@ create_db_table_results_main_fd_main <- function (file) {
   competition_id <- str_replace(file_short, pattern = season_id,
                                 replacement = "") %>%
     nchar() %>%
-    subtract(1) %>%
+    map(1) %>%
+    unlist() %>%
     str_sub(file_short, 1, . )
   
   
@@ -87,8 +95,8 @@ create_db_table_results_main_fd_main <- function (file) {
     "BbMxH",      "max_home_odds_betbrain",
     "BbMxD",      "max_draw_odds_betbrain",
     "BbMxA",      "max_away_odds_betbrain",
-    "BbMx>2.5",   "max_over_odds_max_betbrain",
-    "BbMx<2.5",   "max_under_odds_max_betbrain",
+    "BbMx>2.5",   "max_over_odds_betbrain",
+    "BbMx<2.5",   "max_under_odds_betbrain",
     "BSH",        "home_odds_bluesquare",
     "BSD",        "draw_odds_bluesquare",
     "BSA",        "away_odds_bluesquare",
@@ -104,7 +112,9 @@ create_db_table_results_main_fd_main <- function (file) {
     "SOA",        "away_odds_sportingodds",
     "MaxH",       "max_home_odds_market",
     "MaxD",       "max_draw_odds_market",
-    "MaxA",       "max_away_odds_market"
+    "MaxA",       "max_away_odds_market",
+    "Max>2.5",    "max_over_odds_market",
+    "Max<2.5",    "max_under_odds_market"
   )
   
   # Read in the dataset
@@ -153,6 +163,8 @@ create_db_table_results_main_fd_main <- function (file) {
            home_odds_max_data = calc_max_odds(fd_clean_names, "home_odds"),
            draw_odds_max_data = calc_max_odds(fd_clean_names, "draw_odds"),
            away_odds_max_data = calc_max_odds(fd_clean_names, "away_odds"),
+           over_odds_max_data = calc_max_odds(fd_clean_names, "over_odds"),
+           under_odds_max_data = calc_max_odds(fd_clean_names, "under_odds"),
            result = case_when(home_goals > away_goals ~ "home",
                               home_goals == away_goals ~ "draw",
                               home_goals < away_goals ~ "away",
@@ -166,24 +178,24 @@ create_db_table_results_main_fd_main <- function (file) {
            home_odds_sharp_closing = closing_home_odds_pinnacle,
            draw_odds_sharp_closing = closing_draw_odds_pinnacle,
            away_odds_sharp_closing = closing_away_odds_pinnacle,
+           over_odds_sharp_closing = closing_over_odds_pinnacle,
+           under_odds_sharp_closing = closing_under_odds_pinnacle,
            is_valid_result = TRUE,
            is_location_home = TRUE,
            is_replay = FALSE,
            is_empty_stadium = FALSE,
            leg = 0,
            match_id = create_match_id(competition_id, match_date, home_team, away_team)) %>%
-    add_missing_col_name("max_home_odds_betbrain") %>%
-    add_missing_col_name("max_draw_odds_betbrain") %>%
-    add_missing_col_name("max_away_odds_betbrain") %>%
-    add_missing_col_name("max_home_odds_market") %>%
-    add_missing_col_name("max_draw_odds_market") %>%
-    add_missing_col_name("max_away_odds_market") %>%
     mutate(max_home_odds_betbrain = as.numeric(max_home_odds_betbrain),
            max_draw_odds_betbrain = as.numeric(max_draw_odds_betbrain),
            max_away_odds_betbrain = as.numeric(max_away_odds_betbrain),
+           max_over_odds_betbrain = as.numeric(max_over_odds_betbrain),
+           max_under_odds_betbrain = as.numeric(max_under_odds_betbrain),           
            max_home_odds_market = as.numeric(max_home_odds_market),
            max_draw_odds_market = as.numeric(max_draw_odds_market),
            max_away_odds_market = as.numeric(max_away_odds_market),
+           max_over_odds_market = as.numeric(max_over_odds_market),
+           max_under_odds_market = as.numeric(max_under_odds_market),           
            home_odds_max = case_when(!is.na(max_home_odds_betbrain) ~ max_home_odds_betbrain,
                                      !is.na(max_home_odds_market) ~ max_home_odds_market,
                                      !is.na(home_odds_max_data) ~ home_odds_max_data),
@@ -192,11 +204,17 @@ create_db_table_results_main_fd_main <- function (file) {
                                      !is.na(draw_odds_max_data) ~ draw_odds_max_data),          
            away_odds_max = case_when(!is.na(max_away_odds_betbrain) ~ max_away_odds_betbrain,
                                      !is.na(max_away_odds_market) ~ max_away_odds_market,
-                                     !is.na(away_odds_max_data) ~ away_odds_max_data)) %>%                                     
+                                     !is.na(away_odds_max_data) ~ away_odds_max_data),
+           over_odds_max = case_when(!is.na(max_over_odds_betbrain) ~ max_over_odds_betbrain,
+                                     !is.na(max_over_odds_market) ~ max_over_odds_market,
+                                     !is.na(over_odds_max_data) ~ over_odds_max_data),           
+           under_odds_max = case_when(!is.na(max_under_odds_betbrain) ~ max_under_odds_betbrain,
+                                      !is.na(max_under_odds_market) ~ max_under_odds_market,
+                                      !is.na(under_odds_max_data) ~ under_odds_max_data)) %>%                                     
     select(match_id, competition_id, season_id, match_date, home_team, away_team, result, home_goals, away_goals,
-           over_under_2_5, total_goals, home_odds_max, draw_odds_max, away_odds_max, home_odds_sharp_closing,
-           draw_odds_sharp_closing, away_odds_sharp_closing, is_valid_result, is_location_home, is_replay, leg,
-           is_empty_stadium)
+           over_under_2_5, total_goals, home_odds_max, draw_odds_max, away_odds_max, over_odds_max, under_odds_max,
+           home_odds_sharp_closing, draw_odds_sharp_closing, away_odds_sharp_closing, over_odds_sharp_closing, 
+           under_odds_sharp_closing, is_valid_result, is_location_home, is_replay, leg, is_empty_stadium)
 
     return (results_main)
   
@@ -227,7 +245,6 @@ add_missing_col_name <- function (x, col_name, value = NA_real_) {
 #' 
 #' @param x the tibble
 #' @param col_names_starts_with the columns to extract with starts_with e.g. "home_odds"
-
 
 calc_max_odds <- function(x, col_names_starts_with) {
   

@@ -12,19 +12,18 @@
 
 create_match_id <- function (competition_id, match_date, home_team, away_team) {
   
-
+ 
   if (is.Date(match_date) == FALSE) {
     
     stop ("match_date must be of class date")
     
   }
-  
-  if (home_team == away_team) {
+  if (sum(map2_lgl(home_team, away_team, magrittr::equals)) > 0) {
     
-    stop ("home_team must not equal away_team")
+    warning ("home_team is equal to away_team")
     
   }
-  
+ 
   match_id <- match_date %>%
     as.character() %>%
     str_replace_all("-", "") %>%
