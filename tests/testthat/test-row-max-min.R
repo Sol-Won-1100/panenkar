@@ -14,7 +14,7 @@ test_that("row max works as expected", {
   
   expect_equal(row_max(x,x2, x3, append_col = FALSE), 4)
   expect_equal(row_max(y,x2, x3, append_col = FALSE), c(4, 12))
-  expect_equal(row_max(y,x2, x3, max_col_name = "y_row_max"), y_append)
+  expect_equal(row_max(y,x2, x3, new_col_name = "y_row_max"), y_append)
   
 })
 
@@ -32,7 +32,7 @@ test_that("row min works as expected", {
   
   expect_equal(row_min(x,x2, x3, append_col = FALSE), 2)
   expect_equal(row_min(y,x2, x3, append_col = FALSE), c(2, 11))
-  expect_equal(row_min(y,x2, x3, min_col_name = "y_row_min"), y_append)
+  expect_equal(row_min(y,x2, x3, new_col_name = "y_row_min"), y_append)
   
 })
 

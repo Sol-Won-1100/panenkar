@@ -1,6 +1,4 @@
 
-# To Do - create draw and away test and over under and closing
-
 context("Create Database Table: Results Main")
 
 library(tidyverse)
@@ -14,14 +12,20 @@ library(testthat)
 # Setup ----------------------------------------------------------------------------------------------------------------
 
 wd_test_data <- here::here() %>% paste0("/tests/testthat/")
-file_raw <- paste0(wd_test_data, "tur_sl_2019_2020.csv") 
 
-results_raw <- read_csv(file_raw)
-results_main <- create_db_table_results_main_fd_main(file_raw)
+file_raw_main <- paste0(wd_test_data, "tur_sl_2019_2020.csv") 
+results_main_league_raw <- read_csv(file_raw_main)
+results_main_league <- create_db_table_results_main_fd_main(file_raw_main)
+
+file_raw_extra <- paste0(wd_test_data, "den_sl_all.csv")
+results_extra_league_raw <- read_csv(file_raw_extra)
+results_extra_league <- create_db_table_results_main_fd_extra(file_raw_extra)
 
 # Tests ----------------------------------------------------------------------------------------------------------------
 
 test_that("columns and rows are as expected", {
+  
+  # Test for main leagues
   
   expected_cols <- c("match_id", "competition_id", "season_id", "match_date", "home_team", "away_team", "result",
                      "home_goals", "away_goals", "over_under_2_5", "total_goals", "home_odds_max", "draw_odds_max",
@@ -30,10 +34,18 @@ test_that("columns and rows are as expected", {
                      "under_odds_sharp_closing","is_valid_result", "is_location_home", "is_replay", "leg", 
                      "is_empty_stadium")
   
-  num_valid_rows_results <- results_raw %>% filter(!is.na(Date)) %>% nrow()
+  num_valid_rows_results <- results_main_league_raw %>% filter(!is.na(Date)) %>% nrow()
   
-  expect_equivalent(colnames(results_main), expected_cols)
-  expect_equal(nrow(results_main), num_valid_rows_results)
+  expect_equivalent(colnames(results_main_league), expected_cols)
+  expect_equal(nrow(results_main_league), num_valid_rows_results)
+  
+  # Tests for extra leagues, expected cols same
+  
+  num_valid_rows_results <- results_extra_league_raw %>% filter(!is.na(Date)) %>% nrow()
+
+  expect_equivalent(colnames(results_extra_league), expected_cols)
+  expect_equal(nrow(results_extra_league), num_valid_rows_results)  
+  
   
 })
 
@@ -45,12 +57,24 @@ test_that("max odds calculated correctly", {
   max_over_odds_expected <- c(1.72, 2.05, 2.09, 2)
   max_under_odds_expected <- c(2.07, 1.75, 1.86, 2.2)
 
-  expect_equivalent(max_home_odds_expected, results_main$home_odds_max)
-  expect_equivalent(max_draw_odds_expected, results_main$draw_odds_max)
-  expect_equivalent(max_away_odds_expected, results_main$away_odds_max)
-  expect_equivalent(max_over_odds_expected, results_main$over_odds_max)
-  expect_equivalent(max_under_odds_expected, results_main$under_odds_max)
+  expect_equal(max_home_odds_expected, results_main_league$home_odds_max)
+  expect_equal(max_draw_odds_expected, results_main_league$draw_odds_max)
+  expect_equal(max_away_odds_expected, results_main_league$away_odds_max)
+  expect_equal(max_over_odds_expected, results_main_league$over_odds_max)
+  expect_equal(max_under_odds_expected, results_main_league$under_odds_max)
   
+  max_home_odds_expected <- c(2, 2.65, 2.4)
+  max_draw_odds_expected <- c(3.4, 3.35, 4.2)
+  max_away_odds_expected <- c(3.6, 3.25, 3.33)
+  max_over_odds_expected <- c(2, 2.5, 3)
+  max_under_odds_expected <- rep(NA_real_, 3)
+  
+  expect_equal(max_home_odds_expected, results_extra_league$home_odds_max)
+  expect_equal(max_draw_odds_expected, results_extra_league$draw_odds_max)
+  expect_equal(max_away_odds_expected, results_extra_league$away_odds_max)
+  expect_equal(max_over_odds_expected, results_extra_league$over_odds_max)
+  expect_equal(max_under_odds_expected, results_extra_league$under_odds_max)
+
 })
 
 
@@ -62,11 +86,11 @@ test_that("closing odds picked up ok", {
   over_odds_sharp_closing_expected <- c(1.76, 2.06, 2.05, 1.73)
   under_odds_sharp_closing_expected <- c(2.13, 1.82, 1.83, 2.19)
   
-  expect_equivalent(home_odds_sharp_closing_expected, results_main$home_odds_sharp_closing)
-  expect_equivalent(draw_odds_sharp_closing_expected , results_main$draw_odds_sharp_closing)
-  expect_equivalent(away_odds_sharp_closing_expected, results_main$away_odds_sharp_closing)
-  expect_equivalent(over_odds_sharp_closing_expected, results_main$over_odds_sharp_closing)
-  expect_equivalent(under_odds_sharp_closing_expected, results_main$under_odds_sharp_closing)
+  expect_equivalent(home_odds_sharp_closing_expected, results_main_league$home_odds_sharp_closing)
+  expect_equivalent(draw_odds_sharp_closing_expected , results_main_league$draw_odds_sharp_closing)
+  expect_equivalent(away_odds_sharp_closing_expected, results_main_league$away_odds_sharp_closing)
+  expect_equivalent(over_odds_sharp_closing_expected, results_main_league$over_odds_sharp_closing)
+  expect_equivalent(under_odds_sharp_closing_expected, results_main_league$under_odds_sharp_closing)
 
 })
 
@@ -82,6 +106,14 @@ test_that("error returned if bad file name", {
   expect_error(create_db_table_results_main_fd_main(file_bad_season_id))
   
 })
+
+test_that("error returned if bad file name", {
+  
+  file_bad_season_id <- paste0(wd_test_data, "tur_sl_2019__2020.csv") 
+  expect_error(create_db_table_results_main_fd_main(file_bad_season_id))
+  
+})
+
 
 
 
@@ -101,11 +133,12 @@ test_that("add_missing_col_name helper works as expected", {
 test_that("calc_max_odds helper works as expected", {
   
   x <- tribble(~home_odds_coral,  ~home_odds_william_hill, ~away_odds_coral,
-               4.5,               4.2,                     4.8,
-               NA_real_,          2,                       2.2)
-
+               4.5,               4.2,                     NA_real_,
+               NA_real_,          2,                       NA_real_)
+  
   expect_equal(calc_max_odds(x, "home_odds"), c(4.5, 2))
-
+  expect_equal(calc_max_odds(x, "draw_odds"), rep(NA_real_, 2))
+  expect_equal(calc_max_odds(x, "away_odds"), rep(NA_real_, 2))
 })
 
 
