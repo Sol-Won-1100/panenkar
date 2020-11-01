@@ -5,19 +5,15 @@ library(tidyverse)
 library(lubridate)
 library(magrittr)
 
-# Delete these 2 once complete
-library(panenkar)
-library(testthat)
-
 # Setup ----------------------------------------------------------------------------------------------------------------
 
-wd_test_data <- here::here() %>% paste0("/tests/testthat/")
+wd_test <- here::here() %>% paste0("/tests/testthat/")
 
-file_raw_main <- paste0(wd_test_data, "tur_sl_2019_2020.csv") 
+file_raw_main <- paste0(wd_test, "tur_sl_2019_2020.csv") 
 results_main_league_raw <- read_csv(file_raw_main)
 results_main_league <- create_db_table_results_main_fd_main(file_raw_main)
 
-file_raw_extra <- paste0(wd_test_data, "den_sl_all.csv")
+file_raw_extra <- paste0(wd_test, "den_sl_all.csv")
 results_extra_league_raw <- read_csv(file_raw_extra)
 results_extra_league <- create_db_table_results_main_fd_extra(file_raw_extra)
 
@@ -115,7 +111,9 @@ test_that("error returned if file does not exist", {
 
 test_that("error returned if bad file name", {
   
-  file_bad_season_id <- paste0(wd_test_data, "tur_sl_2019__2020.csv") 
+  file_bad_season_id <- paste0(wd_test, "tur_sl_2019__2020.csv") 
+  expect_equal(file.exists(file_bad_season_id ), TRUE)
+  
   expect_error(create_db_table_results_main_fd_main(file_bad_season_id)) # No season_id pattern in file name
   expect_error(create_db_table_results_main_fd_extra(file_bad_season_id)) # No _all in file name
   
@@ -123,10 +121,12 @@ test_that("error returned if bad file name", {
 
 test_that("error returned if wrong file type", {
   
-  file_bad_type <- paste0(wd_test_data, "tur_sl_2019_2020.xlsx") 
+  file_bad_type <- paste0(wd_test, "tur_sl_2019_2020.xlsx") 
+  expect_equal(file.exists(file_bad_type), TRUE)
   expect_error(create_db_table_results_main_fd_main(file_bad_type)) 
   
-  file_bad_type <- paste0(wd_test_data, "den_sl_all.xlsx") 
+  file_bad_type <- paste0(wd_test, "den_sl_all.xlsx") 
+  expect_equal(file.exists(file_bad_type), TRUE)
   expect_error(create_db_table_results_main_fd_extra(file_bad_season_id)) # No _all in file name
   
 })
