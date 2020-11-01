@@ -181,11 +181,11 @@ create_db_table_results_main_fd_main <- function (file) {
              total_goals > 2.5 ~ "over",
              TRUE ~ NA_character_
            ),
-           home_odds_sharp_closing = closing_home_odds_pinnacle,
-           draw_odds_sharp_closing = closing_draw_odds_pinnacle,
-           away_odds_sharp_closing = closing_away_odds_pinnacle,
-           over_odds_sharp_closing = closing_over_odds_pinnacle,
-           under_odds_sharp_closing = closing_under_odds_pinnacle,
+           home_odds_sharp_closing = as.numeric(closing_home_odds_pinnacle),
+           draw_odds_sharp_closing = as.numeric(closing_draw_odds_pinnacle),
+           away_odds_sharp_closing = as.numeric(closing_away_odds_pinnacle),
+           over_odds_sharp_closing = as.numeric(closing_over_odds_pinnacle),
+           under_odds_sharp_closing = as.numeric(closing_under_odds_pinnacle),
            is_valid_result = TRUE,
            is_location_home = TRUE,
            is_replay = FALSE,
@@ -222,6 +222,8 @@ create_db_table_results_main_fd_main <- function (file) {
            home_odds_sharp_closing, draw_odds_sharp_closing, away_odds_sharp_closing, over_odds_sharp_closing, 
            under_odds_sharp_closing, is_valid_result, is_location_home, is_replay, leg, is_empty_stadium)
 
+    
+  
     return (results_main)
   
 }
@@ -430,11 +432,11 @@ create_db_table_results_main_fd_extra <- function (file) {
              total_goals > 2.5 ~ "over",
              TRUE ~ NA_character_
            ),
-           home_odds_sharp_closing = closing_home_odds_pinnacle,
-           draw_odds_sharp_closing = closing_draw_odds_pinnacle,
-           away_odds_sharp_closing = closing_away_odds_pinnacle,
-           over_odds_sharp_closing = closing_over_odds_pinnacle,
-           under_odds_sharp_closing = closing_under_odds_pinnacle,
+           home_odds_sharp_closing = as.numeric(closing_home_odds_pinnacle),
+           draw_odds_sharp_closing = as.numeric(closing_draw_odds_pinnacle),
+           away_odds_sharp_closing = as.numeric(closing_away_odds_pinnacle),
+           over_odds_sharp_closing = as.numeric(closing_over_odds_pinnacle),
+           under_odds_sharp_closing = as.numeric(closing_under_odds_pinnacle),
            is_valid_result = TRUE,
            is_location_home = TRUE,
            is_replay = FALSE,

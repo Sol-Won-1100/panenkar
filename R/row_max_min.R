@@ -7,7 +7,7 @@
 #' 
 #' @notes passes the max function to row_numeric_function which applys the max functions to rows
 #' 
-#' @example 
+#' @examples 
 #' 
 #' library(tidyverse)
 #' 

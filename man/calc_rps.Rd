@@ -2,20 +2,20 @@
 % Please edit documentation in R/calc_rps.R
 \name{calc_rps}
 \alias{calc_rps}
-\title{Calculate Ranked Probability Score}
+\title{Calculate Rank Probability Score}
 \usage{
-calc_rps(predictions, observed)
+calc_rps(predicted, observed, average_all = FALSE)
 }
 \arguments{
-\item{predictions}{matrix, data.frame or tibble of probabilties, columns are 
-outcomes and rows are observations}
+\item{predicted}{a matrix, data frame or tibble of probabilities, each row is a match and each column is an outcome
+e.g. home, draw, away. Columns must sum to 1.}
 
-\item{observed}{same as predictions, typically a 1 indicates the outcome 
-occured and 0 it didnt though you could use bookmakers implied probabilties}
-}
-\value{
-vector of scores
+\item{observed}{a vector of actual outcomes corresponding to the columns in predicted e.g if 1 then the outcome in
+the first column of predicted actually occurred}
+
+\item{average_all}{default FALSE is TRUE the usual output, a vector of scores for each match, is averaged so only a
+single value is returned.}
 }
 \description{
-Calculate the ranked probability score
+Calculates the rank probability score of forecasts
 }

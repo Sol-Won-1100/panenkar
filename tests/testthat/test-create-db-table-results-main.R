@@ -86,31 +86,48 @@ test_that("closing odds picked up ok", {
   over_odds_sharp_closing_expected <- c(1.76, 2.06, 2.05, 1.73)
   under_odds_sharp_closing_expected <- c(2.13, 1.82, 1.83, 2.19)
   
-  expect_equivalent(home_odds_sharp_closing_expected, results_main_league$home_odds_sharp_closing)
-  expect_equivalent(draw_odds_sharp_closing_expected , results_main_league$draw_odds_sharp_closing)
-  expect_equivalent(away_odds_sharp_closing_expected, results_main_league$away_odds_sharp_closing)
-  expect_equivalent(over_odds_sharp_closing_expected, results_main_league$over_odds_sharp_closing)
-  expect_equivalent(under_odds_sharp_closing_expected, results_main_league$under_odds_sharp_closing)
-
+  expect_equal(home_odds_sharp_closing_expected, results_main_league$home_odds_sharp_closing)
+  expect_equal(draw_odds_sharp_closing_expected , results_main_league$draw_odds_sharp_closing)
+  expect_equal(away_odds_sharp_closing_expected, results_main_league$away_odds_sharp_closing)
+  expect_equal(over_odds_sharp_closing_expected, results_main_league$over_odds_sharp_closing)
+  expect_equal(under_odds_sharp_closing_expected, results_main_league$under_odds_sharp_closing)
+  
+  home_odds_sharp_closing_expected <- c(4.15, 2.11, 3.55)
+  draw_odds_sharp_closing_expected <- rep(NA_real_, 3)
+  away_odds_sharp_closing_expected <- c(1.9, 3.66, 2.19)
+  over_odds_sharp_closing_expected <- c(2.1, NA_real_, 2)
+  under_odds_sharp_closing_expected <- rep(NA_real_, 3)
+  
+  expect_equal(home_odds_sharp_closing_expected, results_extra_league$home_odds_sharp_closing)
+  expect_equal(draw_odds_sharp_closing_expected , results_extra_league$draw_odds_sharp_closing)
+  expect_equal(away_odds_sharp_closing_expected, results_extra_league$away_odds_sharp_closing)
+  expect_equal(over_odds_sharp_closing_expected, results_extra_league$over_odds_sharp_closing)
+  expect_equal(under_odds_sharp_closing_expected, results_extra_league$under_odds_sharp_closing)
+  
 })
 
 test_that("error returned if file does not exist", {
   
   expect_error(create_db_table_results_main_fd_main("path-that-doesnt-exist.csv"))
+  expect_error(create_db_table_results_extra_fd_main("path-that-doesnt-exist.csv"))
   
 })
 
 test_that("error returned if bad file name", {
   
   file_bad_season_id <- paste0(wd_test_data, "tur_sl_2019__2020.csv") 
-  expect_error(create_db_table_results_main_fd_main(file_bad_season_id))
+  expect_error(create_db_table_results_main_fd_main(file_bad_season_id)) # No season_id pattern in file name
+  expect_error(create_db_table_results_main_fd_extra(file_bad_season_id)) # No _all in file name
   
 })
 
-test_that("error returned if bad file name", {
+test_that("error returned if wrong file type", {
   
-  file_bad_season_id <- paste0(wd_test_data, "tur_sl_2019__2020.csv") 
-  expect_error(create_db_table_results_main_fd_main(file_bad_season_id))
+  file_bad_type <- paste0(wd_test_data, "tur_sl_2019_2020.xlsx") 
+  expect_error(create_db_table_results_main_fd_main(file_bad_type)) 
+  
+  file_bad_type <- paste0(wd_test_data, "den_sl_all.xlsx") 
+  expect_error(create_db_table_results_main_fd_extra(file_bad_season_id)) # No _all in file name
   
 })
 

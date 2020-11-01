@@ -4,7 +4,7 @@
 \alias{add_promotion_relegation}
 \title{Add Promotion Relegation}
 \usage{
-add_promotion_relegation(.competition_id, .x, .metadata)
+add_promotion_relegation(.competition_id, database_results, .metadata)
 }
 \arguments{
 \item{x}{results database}
