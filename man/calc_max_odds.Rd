@@ -11,6 +11,9 @@ calc_max_odds(x, col_names_starts_with)
 
 \item{col_names_starts_with}{the columns to extract with starts_with e.g. "home_odds"}
 }
+\value{
+maximum odds vector
+}
 \description{
 Helper Function. Calculate the maximum odds columns from columns specified by starts_with
 }

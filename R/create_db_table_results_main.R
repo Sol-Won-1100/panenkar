@@ -1,11 +1,14 @@
 
-
 #' Create Database Table Results Main
 #' 
 #' Creates the data frame in the format required by the results main table in the live football database
 #' 
 #' @param file filename of the raw football match data from football-data.co.uk
 #' @param data_type one of fd_main or fd_extra depending on league type
+#' 
+#' @return results main tibble ready for pushing to database
+#' 
+#' @export
 
 create_db_table_results_main <- function (file, data_type = "fd_main") {
   
@@ -26,6 +29,16 @@ create_db_table_results_main <- function (file, data_type = "fd_main") {
   return (results_main)
   
 }
+
+
+#' Create Database Table Results Main Football Data Main Leagues
+#' 
+#' Creates the data frame in the format required by the results main table in the live football database for main 
+#' leagues from football-data.co.uk
+#' 
+#' @param file filename of the raw football match data from football-data.co.uk
+#' 
+#' @return results main tibble ready for pushing to database
 
 create_db_table_results_main_fd_main <- function (file) {
   
@@ -228,31 +241,13 @@ create_db_table_results_main_fd_main <- function (file) {
   
 }
 
-#' Add Missing Column Name
-#' 
-#' Helper Function. Checkes if a column is missing in a tibble x and if it is it adds the column in
-#' 
-#' @param x the tibble
-#' @param col_names_starts_with the columns to extract with starts_with e.g. "home_odds"
-
-add_missing_col_name <- function (x, col_name, value = NA_real_) {
-  
-  if (col_name %in% colnames(x) == FALSE) {
-    
-    x[, col_name] <- value
-    
-  }
-  
-  return(x)
-  
-}
-
 #' Calculate Max Odds
 #' 
 #' Helper Function. Calculate the maximum odds columns from columns specified by starts_with
 #' 
 #' @param x the tibble
 #' @param col_names_starts_with the columns to extract with starts_with e.g. "home_odds"
+#' @return maximum odds vector
 
 calc_max_odds <- function(x, col_names_starts_with) {
 
@@ -281,10 +276,18 @@ calc_max_odds <- function(x, col_names_starts_with) {
     row_max(append_col = FALSE)
   
   return(max_odds)
+  
 }
 
 
-
+#' Create Database Table Results Main Football Data Extra Leagues
+#' 
+#' Creates the data frame in the format required by the results main table in the live football database for extra 
+#' leagues from football-data.co.uk
+#' 
+#' @param file filename of the raw football match data from football-data.co.uk
+#' 
+#' @return results main tibble ready for pushing to database
 
 create_db_table_results_main_fd_extra <- function (file) {
   

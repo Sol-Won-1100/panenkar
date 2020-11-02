@@ -11,6 +11,9 @@ create_db_table_results_main(file, data_type = "fd_main")
 
 \item{data_type}{one of fd_main or fd_extra depending on league type}
 }
+\value{
+results main tibble ready for pushing to database
+}
 \description{
 Creates the data frame in the format required by the results main table in the live football database
 }
