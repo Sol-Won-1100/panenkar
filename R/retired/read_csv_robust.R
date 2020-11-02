@@ -1,8 +1,7 @@
 
-#' @title Read CSV File with Check
+#' Read CSV File with Check
 #'
-#' @description Read's in a CSV file with an error handler built in incase of
-#' failure.
+#' Read's in a CSV file with an error handler built in incase of failure.
 #'
 #' @param ... see arguments of dplyr::read_csv
 #'
@@ -16,6 +15,7 @@
 #' @export
 #'
 #' @examples
+#' 
 #' file = "C:/Users/Neil/Documents/football-betting/data-raw/arg_pd_all.csv"
 #'
 #' suppressWarnings(

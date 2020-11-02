@@ -140,19 +140,9 @@ create_db_table_results_main_fd_main <- function (file) {
 
   suppressWarnings(
     suppressMessages(
-      fd_raw <- read_csv_robust(file)
+      fd_raw <- read_csv(file)
     )
   )
-  
-  if (fd_raw$error == TRUE) {
-    
-    stop(fd_raw$error_message)
-    
-  } else {
-    
-    fd_raw <- fd_raw$csv
-    
-  }
   
   col_names_in_raw <- subset(col_names_lookup$dirty, col_names_lookup$dirty %in% colnames(fd_raw))
   
@@ -381,19 +371,9 @@ create_db_table_results_main_fd_extra <- function (file) {
   
   suppressWarnings(
     suppressMessages(
-      fd_raw <- read_csv_robust(file)
+      fd_raw <- read_csv(file)
     )
   )
-  
-  if (fd_raw$error == TRUE) {
-    
-    stop(fd_raw$error_message)
-    
-  } else {
-    
-    fd_raw <- fd_raw$csv
-    
-  }
   
   col_names_in_raw <- subset(col_names_lookup$dirty, col_names_lookup$dirty %in% colnames(fd_raw))
   
