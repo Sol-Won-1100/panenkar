@@ -17,7 +17,7 @@ connect_to_access_dbi <- function(file)  {
     
   }
   
-  if (str_ends(".accdb", negate = TRUE)) {
+  if (str_ends(file, ".accdb", negate = TRUE)) {
     
     stop("bad file extension must be .accdb")
     
