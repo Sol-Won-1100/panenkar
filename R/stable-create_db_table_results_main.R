@@ -62,7 +62,7 @@ create_db_table_results_main_fd_main <- function (file) {
     
   }
   
-  competition_id <- str_replace(file_short, pattern = season_id,
+  competition_id <- str_replace(file_short, pattern = paste0("_", season_id),
                                 replacement = "") %>%
     nchar() %>%
     map(1) %>%
