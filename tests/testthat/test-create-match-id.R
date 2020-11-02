@@ -24,6 +24,6 @@ test_that("error handling works as expected", {
   match_id <- "sco_pl__20200101__Celtic__Rangers"
   
   expect_error(create_match_id(competition_id, as.character(match_date), home_team, away_team))
-  expect_error(create_match_id(competition_id, match_date, home_team, away_team = home_team))
+  expect_warning(create_match_id(competition_id, match_date, home_team, away_team = home_team))
   
 })

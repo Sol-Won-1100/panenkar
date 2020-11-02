@@ -131,22 +131,6 @@ test_that("error returned if wrong file type", {
   
 })
 
-
-
-
-test_that("add_missing_col_name helper works as expected", {
-  
-  x <- tribble(~x1,  ~x2, ~x3,
-               "dog", 2,   4)
-  
-  y <- mutate(x, x4 = NA_real_)
-  
-  expect_equal(add_missing_col_name(x, "x1"), x)
-  expect_equal(add_missing_col_name(x, "x4"), y)
-  
-})
-
-
 test_that("calc_max_odds helper works as expected", {
   
   x <- tribble(~home_odds_coral,  ~home_odds_william_hill, ~away_odds_coral,
