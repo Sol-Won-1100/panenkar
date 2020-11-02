@@ -12,6 +12,9 @@ row_max(...)
 \description{
 Return the row maximum / minimum for columns ... in a tibble x using tidy evaluation
 }
+\note{
+passes the max function to row_numeric_function which applys the max functions to rows
+}
 \examples{
 
 library(tidyverse)

@@ -5,7 +5,7 @@
 #' 
 #' @param ... see row_numeric_function_below
 #' 
-#' @notes passes the max function to row_numeric_function which applys the max functions to rows
+#' @note passes the max function to row_numeric_function which applys the max functions to rows
 #' 
 #' @examples 
 #' 

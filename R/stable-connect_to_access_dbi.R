@@ -3,7 +3,7 @@
 #' 
 #' Connect to access via a DBI connector
 #' 
-#' @param file
+#' @param file path to your database
 #' @return connection to your access database
 #' @export
 
