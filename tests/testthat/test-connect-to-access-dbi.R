@@ -1,10 +1,6 @@
 
 context("Testing functions for connecting to access database")
 
-# Delete these 2 once complete
-library(panenkar)
-library(testthat)
-
 test_that("errors returned if file does not exist", {
   
   expect_error(connect_to_access_dbi("path-that-doesnt-exist.accdb"))

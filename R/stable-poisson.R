@@ -330,7 +330,7 @@ poisson_build_model_data <- function(results, x1, x2, current_date, xi = 0.0016,
   model_data_home <- results %>%
     select(match_date, home_team, away_team, !!x1) %>%
     set_colnames(c("match_date", "attack", "defence", "goals")) %>%
-    mutate(location = 1, time_weight = calc_time_weights_exp(match_date, current_date, xi))
+    mutate(location = 1, time_weight = poisson_time_weights(match_date, current_date, xi))
   
   model_data_away <- results %>%
     select(match_date, away_team, home_team, !!x2) %>%
@@ -404,4 +404,54 @@ optim_xi_poisson_gd <- function(xi, results_estimate_xi, match_rows, goal_differ
   goal_difference_mse <- mean((goal_difference_actual - goal_difference_predicted)^2)
   
   return(goal_difference_mse)
+}
+
+
+#' Calculate Time Weights Exponential
+#'
+#' Uses an exponetial time weighting for modelling, weighting more recent matches more strongly. This is derived from 
+#' the time weighting method used by Dixon-Coles in their version of the double Poisson model
+#'
+#' @param match_dates dates of football matches, date object
+#' @param current_date what date to calculate the exponential time weight from
+#' @param xi the time weight parameter
+#' 
+#' @return vector of weights
+#'       
+#' @export
+
+poisson_time_weights <- function(match_dates, current_date, xi = 0.0016){
+  
+
+  if (class(match_dates) != "Date" ) {
+    
+    stop ("'match_dates' must be of class Date")
+    
+  }
+  
+  if (class(current_date) != "Date" ) {
+    
+    stop ("'current_date' must be of class Date")
+    
+  }
+  
+  if (!is.numeric(xi)) {
+    
+    stop ("'xi' must be numeric")
+    
+  }
+  
+  if (xi <= 0) {
+    
+    warning ("'xi' less than or equal to 0 may cause problems")
+    
+  }
+  
+  days_difference <- as.numeric(current_date - match_dates)
+  
+  weights <- exp(-xi*days_difference)
+  weights[days_difference <= 0] <- 0
+  
+  return(weights)
+  
 }

@@ -1,11 +1,11 @@
 
 context("Create Database Table: Results Main")
 
+# Setup ----------------------------------------------------------------------------------------------------------------
+
 library(tidyverse)
 library(lubridate)
 library(magrittr)
-
-# Setup ----------------------------------------------------------------------------------------------------------------
 
 wd_test <- here::here() %>% paste0("/tests/testthat/")
 
