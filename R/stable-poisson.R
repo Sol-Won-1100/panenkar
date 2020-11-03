@@ -180,7 +180,7 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, mar
     
     if ("both_teams_to_score" %in% markets) {
       
-      predictions <-bind_cols(predictions, tibble(btts_yes_prob = NA_real_, btts_no_prob = NA_real_)))
+      predictions <-bind_cols(predictions, tibble(btts_yes_prob = NA_real_, btts_no_prob = NA_real_))
       
     } 
     
