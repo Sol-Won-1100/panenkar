@@ -4,8 +4,11 @@
 \alias{get_metadata}
 \title{Get Metadata}
 \usage{
-get_metadata(competition_ids = NA,
-  latest_european_season = "2020_2021", output_format = "list")
+get_metadata(
+  competition_ids = NA,
+  latest_european_season = "2020_2021",
+  output_format = "list"
+)
 }
 \arguments{
 \item{competition_ids}{Each competition has a unique competition_id to

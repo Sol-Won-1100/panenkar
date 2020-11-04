@@ -4,10 +4,16 @@
 \alias{poisson_simulate_matches}
 \title{Poisson Simulate Matches}
 \usage{
-poisson_simulate_matches(training_set, test_set, xi = 0.0016,
-  max_goals = 8, markets = c("result", "over_under",
-  "both_teams_to_score"), over_under_goals = 2.5,
-  zero_inflated = FALSE, weight_cut_off = NA)
+poisson_simulate_matches(
+  training_set,
+  test_set,
+  xi = 0.0016,
+  max_goals = 8,
+  markets = c("result", "over_under", "both_teams_to_score"),
+  over_under_goals = 2.5,
+  zero_inflated = FALSE,
+  weight_cut_off = NA
+)
 }
 \arguments{
 \item{training_set, }{columns of which must be "home_team", "away_team", "home_goals", "away_goals", "match_date"}

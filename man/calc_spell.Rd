@@ -11,6 +11,9 @@ calc_spell(x)
 
 \item{database_results}{results database}
 }
+\value{
+
+}
 \description{
 Adds in which spell, since the start of the dataset, the teams are currently in
 }

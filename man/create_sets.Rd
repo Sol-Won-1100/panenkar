@@ -4,8 +4,13 @@
 \alias{create_sets}
 \title{Create Sets}
 \usage{
-create_sets(results_competition, ..., num_seasons_initial = 3,
-  num_seasons_cv = 3, min_matches_prediction = 6)
+create_sets(
+  results_competition,
+  ...,
+  num_seasons_initial = 3,
+  num_seasons_cv = 3,
+  min_matches_prediction = 6
+)
 }
 \arguments{
 \item{results_competition}{football results database filtered so only a 

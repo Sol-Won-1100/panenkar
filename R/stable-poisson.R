@@ -21,6 +21,15 @@ poisson_simulate_matches <- function (training_set, test_set, xi = 0.0016, max_g
                                       markets = c("result", "over_under", "both_teams_to_score"), 
                                       over_under_goals = 2.5, zero_inflated = FALSE, weight_cut_off = NA) {
 
+  
+  # Much of he error handling is taken care of by function calls so  not much here
+  
+  if (!is.logical(zero_inflated)) {
+    
+    stop("'zero_inflated' must be TRUE or FALSE")
+    
+  }
+  
   # Initialize model from test set
   
   match_dates <- unique(test_set$match_date)
@@ -32,8 +41,7 @@ poisson_simulate_matches <- function (training_set, test_set, xi = 0.0016, max_g
     
     fixtures <- filter(test_set, match_date == match_dates[j])
 
-    store_predictions[[j]] <- poisson_predict_matches(fixtures, fit, max_goals, markets, over_under_goals, 
-                                                      zero_inflated)
+    store_predictions[[j]] <- poisson_predict_matches(fixtures, fit, max_goals, markets, over_under_goals)
 
     training_set <- bind_rows(training_set, fixtures)
     
@@ -64,24 +72,40 @@ poisson_simulate_matches <- function (training_set, test_set, xi = 0.0016, max_g
 #' @param max_goals the maximum number of goals to consider in a match
 #' @param markets, vector contain one or more of "result", "over_under" or "both_teams_to_score"
 #' @param over_under_goals a number usual 0.5, 1.5, 2.5, etc though could be a whole number. Only comes into play if 
-#'        markets is "over_under"
-#' @param zero_inflated default FALSE, if TRUE will use zero inflated poisson
+#' markets is "over_under"
 #' 
 #' @return probabilities for outcomes of the various markets for each match in fixtures
 #' @export
 
-
 poisson_predict_matches <- function (fixtures, fit, max_goals = 8, 
                                      markets =  c("result", "over_under", "both_teams_to_score"), 
-                                     over_under_goals = 2.5,  zero_inflated = FALSE) {
+                                     over_under_goals = 2.5) {
+  
+  if (!is.data.frame(fixtures)) {
+    
+    stop("'fixtures' must be a data.frame or tibble")
+    
+  }
+  
+  if (!("home_team" %in% colnames(fixtures))) {
+    
+    stop("'fixtures' must have column 'home_team'")
+    
+  }
+  
+  if (!("away_team" %in% colnames(fixtures))) {
+    
+    stop("'fixtures' must have column 'away_team'") 
+    
+  }
+  
   
   list(home_team = fixtures$home_team, away_team = fixtures$away_team) %>%
     pmap_dfr(poisson_predict_match, 
              fit = fit, 
              max_goals = max_goals, 
              markets = markets, 
-             over_under_goals = over_under_goals, 
-             zero_inflated = zero_inflated)
+             over_under_goals = over_under_goals)
 }
 
 
@@ -97,15 +121,29 @@ poisson_predict_matches <- function (fixtures, fit, max_goals = 8,
 #' @param markets, vector contain one or more of "result", "over_under" or "both_teams_to_score"
 #' @param over_under_goals a number usual 0.5, 1.5, 2.5, etc though could be a whole number. Only comes into play if 
 #'        markets is "over_under"
-#' @param zero_inflated default FALSE, if TRUE will use zero inflated poisson
 #'        
 #' @return a tibble of probabilities for each outcome
 
-poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, markets = "result", over_under_goals = 2.5,
-                                  zero_inflated = FALSE){
-  
+poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8,  
+                                  markets =  c("result", "over_under", "both_teams_to_score"), over_under_goals = 2.5){
   
   # Error handling
+
+  if (class(fit)[1] == "zeroinfl") {
+    
+    zero_inflated <- TRUE
+    
+  } else {
+    
+    zero_inflated <- FALSE
+    
+    if (class(fit)[1] != "glm" | class(fit)[2] != "lm") {
+      
+      stop("'fit' must be of class c('glm', 'lm') or 'zeroinfl'")
+      
+    }
+    
+  }
   
   if (!is.numeric(max_goals)) {
     
@@ -113,9 +151,15 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, mar
     
   }
   
+  if (max_goals <= 0) {
+    
+    stop("'max_goals' must be greater than 0")
+    
+  }
+  
   if (round(max_goals) != max_goals) {
     
-    stop("max_goals must be a whole number")
+    stop("'max_goals' must be a whole number")
     
   }
   
@@ -125,9 +169,19 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, mar
     
   }
   
-  if (!is.numeric(over_under_goals)) {
+  if ("over_under" %in% markets) {
     
-    stop("over_under_goals must be numeric")
+    if (!is.numeric(over_under_goals)) {
+      
+      stop("over_under_goals must be numeric")
+      
+    }
+    
+    if (over_under_goals < 0) {
+      
+      stop("'over_under_goals' must be less than 0")
+      
+    }
     
   }
   
@@ -136,6 +190,22 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, mar
     stop("zero_inflated must be TRUE or FALSE")
     
   }
+  
+  if (!is.character(markets)) {
+    
+    stop("'markets' must be character vector")  
+    
+  }
+  
+  bad_markets <- markets[!(markets %in% c("result", "over_under", "both_teams_to_score"))]
+  
+  
+  if (length(bad_markets) > 0) {
+    
+    stop(paste0("bad markets supplied must be one of result, over_under, both_teams_to_score"))
+    
+  }
+  
   
   # Consistency checks
   
@@ -267,11 +337,13 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, mar
   if ("both_teams_to_score" %in% markets){
     
     btts_no_prob <- sum(goals_table[1,]) + sum(goals_table[, 1]) - goals_table[1, 1]
-    btts_yes_prob <- 1 - no_prob
+    btts_yes_prob <- 1 - btts_no_prob
     
     predictions <- bind_cols(predictions, tibble(btts_yes_prob, btts_no_prob))
     
   } 
+  
+  return(predictions)
   
 }
 

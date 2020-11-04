@@ -11,8 +11,6 @@ add_dependent_feature_fd(x, feature)
 
 \item{feature}{see the function add_dependent_features_fd for a list of 
 possible string inputs. Incorrectly named inputs will warn and but not stop.}
-
-\item{x}{results database}
 }
 \description{
 Add time independent features to football data results dataset. 

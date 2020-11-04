@@ -4,8 +4,12 @@
 \alias{extract_latest_elo}
 \title{Extract Latest ELO}
 \usage{
-extract_latest_elo(.competition_id, results_elo,
-  latest_season_teams = TRUE, sorted = TRUE)
+extract_latest_elo(
+  .competition_id,
+  results_elo,
+  latest_season_teams = TRUE,
+  sorted = TRUE
+)
 }
 \arguments{
 \item{results_elo}{results tibble with elo ratings included}

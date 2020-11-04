@@ -4,8 +4,14 @@
 \alias{poisson_build_model_data}
 \title{Build model data poisson}
 \usage{
-poisson_build_model_data(results, x1, x2, current_date, xi = 0.0016,
-  weight_cut_off = NA)
+poisson_build_model_data(
+  results,
+  x1,
+  x2,
+  current_date,
+  xi = 0.0016,
+  weight_cut_off = NA
+)
 }
 \arguments{
 \item{results}{results database}

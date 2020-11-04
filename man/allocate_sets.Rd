@@ -4,8 +4,10 @@
 \alias{allocate_sets}
 \title{Allocate Sets}
 \usage{
-allocate_sets(results, set_sizes = c(set1 = 0.1, set2 = 0.2, set3 = 0.2,
-  set4 = 0.5))
+allocate_sets(
+  results,
+  set_sizes = c(set1 = 0.1, set2 = 0.2, set3 = 0.2, set4 = 0.5)
+)
 }
 \arguments{
 \item{results}{results database, likely filtered to only contain a single

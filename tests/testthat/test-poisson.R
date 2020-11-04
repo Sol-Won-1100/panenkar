@@ -1,4 +1,5 @@
 
+
 context("Poisson models")
 
 # Tests the following functions from stable-poisson.R
@@ -16,14 +17,6 @@ context("Poisson models")
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
-library(tidyverse)
-library(magrittr)
-library(lubridate)
-
-# # Delete when complete
-# library(panenkar)
-# library(testthat)
-
 file_results <- here::here() %>% paste0("/tests/testthat/sco_prem_1994_1995.rds")
 
 results <- read_rds(file_results)
@@ -31,7 +24,8 @@ results$match_date <- ymd(results$match_date)
 
 model_data <- poisson_build_model_data(results, home_goals, away_goals, ymd("1995-07-07"))
 
-
+fit_poisson <- poisson_fit(model_data)
+fit_zero_inflated <- poisson_fit(model_data, TRUE)
 
 # Tests ----------------------------------------------------------------------------------------------------------------
 
@@ -78,10 +72,7 @@ test_that("poisson_build_model_data works as expected", {
 
 test_that("poisson_fit works as expected", {
   
-  fit_poisson <- poisson_fit(model_data)
-  fit_zero_inflated <- poisson_fit(model_data, TRUE)
   bad_model_data <- select(model_data, -attack, -goals)
-  
   
   coef_names_poisson <- fit_poisson$coefficients %>% names() %>% sort()
   coef_names_zero_inflated <- fit_zero_inflated$coefficients$count %>% names() %>% sort()
@@ -108,4 +99,139 @@ test_that("poisson_fit works as expected", {
     
 })
 
+
+test_that("poisson_predict_match with standard poisson model works as expected", {
+  
+  predicted_result <- poisson_predict_match("Celtic", "Rangers", fit_poisson)
+  predicted_over_under <- poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "over_under")
+  predicted_btts <- poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "both_teams_to_score")
+  
+  predicted_combined <- predicted_result %>%
+    left_join(predicted_over_under) %>%
+    left_join(predicted_btts)
+
+  predicted_all <- poisson_predict_match("Celtic", "Rangers", fit_poisson, 
+                                         markets = c("result", "over_under", "both_teams_to_score"))
+  
+  expect_equal(predicted_all, predicted_combined)
+  
+  sum(predicted_all$home_prob, predicted_all$draw_prob, predicted_all$away_prob) %>%
+    round() %>%
+    expect_equal(1)
+  
+  sum(predicted_all$over_2.5_prob, predicted_all$under_2.5_prob) %>%
+    round() %>%
+    expect_equal(1)
+  
+  sum(predicted_all$btts_yes_prob, predicted_all$btts_no_prob) %>%
+    round() %>%
+    expect_equal(1) 
+  
+  expect_gt(predicted_all$home_prob, predicted_all$away_prob)
+  expect_equal(nrow(predicted_all), 1)
+  
+  expect_warning(poisson_predict_match("Celtic", "Celtic", fit_poisson))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "blah"))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = 2222))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = -1))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = 0))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = 7.3))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = "dog"))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, zero_inflated = 12))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "over_under", 
+                                     over_under_goals = "dog"))
+  
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "over_under", over_under_goals = -2))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = "cat"), NA)
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = -2), NA)
+
+})
+
+test_that("poisson_predict_match with zero inflated model works as expected", {
+  
+  predicted_result <- poisson_predict_match("Celtic", "Rangers", fit_zero_inflated)
+  predicted_over_under <- poisson_predict_match("Celtic", "Rangers", fit_zero_inflated, markets = "over_under")
+  predicted_btts <- poisson_predict_match("Celtic", "Rangers", fit_zero_inflated, markets = "both_teams_to_score")
+  
+  predicted_combined <- predicted_result %>%
+    left_join(predicted_over_under) %>%
+    left_join(predicted_btts)
+  
+  predicted_all <- poisson_predict_match("Celtic", "Rangers", fit_zero_inflated, 
+                                         markets = c("result", "over_under", "both_teams_to_score"))
+  
+  expect_equal(predicted_all, predicted_combined)
+  
+  sum(predicted_all$home_prob, predicted_all$draw_prob, predicted_all$away_prob) %>%
+    round() %>%
+    expect_equal(1)
+  
+  sum(predicted_all$over_2.5_prob, predicted_all$under_2.5_prob) %>%
+    round() %>%
+    expect_equal(1)
+  
+  sum(predicted_all$btts_yes_prob, predicted_all$btts_no_prob) %>%
+    round() %>%
+    expect_equal(1) 
+  
+  expect_gt(predicted_all$home_prob, predicted_all$away_prob)
+  expect_equal(nrow(predicted_all), 1)
+  
+  expect_warning(poisson_predict_match("Celtic", "Celtic", fit_poisson))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "blah"))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = 2222))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = -1))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = 0))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = 7.3))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = "dog"))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, zero_inflated = 12))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "over_under", 
+                                     over_under_goals = "dog"))
+  
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "over_under", over_under_goals = -2))
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = "cat"), NA)
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = -2), NA)
+  
+})
+
+test_that("poisson_predict_matches works as expected", {
+  
+  fixtures <- tibble(home_team = c("Celtic", "Hearts"), away_team = c("Rangers", "Hibernian"))
+  
+  predicted <- poisson_predict_matches(fixtures, fit_poisson)
+  
+  individual_predictions <- bind_rows(poisson_predict_match("Celtic", "Rangers", fit_poisson),
+                                      poisson_predict_match("Hearts", "Hibernian", fit_poisson))
+  
+  expect_equal(predicted, individual_predictions)
+  expect_error(poisson_predict_matches(12, fit_zero_inflated))
+  
+  fixtures_bad1 <- rename(fixtures, goldfish = home_team)
+  fixtures_bad2 <- rename(fixtures, pig = away_team)
+  
+  expect_error(poisson_predict_matches(fixtures_bad1, fit_poisson))
+  expect_error(poisson_predict_matches(fixtures_bad2, fit_zero_inflated))
+  
+})
+
+test_that("poisson_simulate_matches works as expected", {
+  
+  training_set <- results
+  
+  test_set <- tibble(match_date = ymd("1995-07-07", "1995-07-11"),
+                     home_team = c("Celtic", "Hearts"), 
+                     away_team = c("Rangers", "Hibernian"))
+  
+  predicted <- poisson_simulate_matches(training_set , test_set)
+  
+  individual_predictions <- poisson_predict_matches(test_set[1,], fit_poisson)
+  
+  predicted %>%
+    slice(1) %>%
+    select(-match_date, -home_team, -away_team) %>%
+    expect_equal(individual_predictions)
+  
+  expect_error(poisson_simulate_matches(training_set, test_set, zero_inflated = "wombat"))
+    
+})
 

@@ -4,8 +4,12 @@
 \alias{optim_xi_poisson_gd}
 \title{Optimise xi Poisson Goal Difference}
 \usage{
-optim_xi_poisson_gd(xi, results_estimate_xi, match_rows,
-  goal_difference_actual)
+optim_xi_poisson_gd(
+  xi,
+  results_estimate_xi,
+  match_rows,
+  goal_difference_actual
+)
 }
 \arguments{
 \item{xi}{the value of xi to use in the time weight}

@@ -4,8 +4,14 @@
 \alias{poisson_predict_match}
 \title{Poisson Predict Match}
 \usage{
-poisson_predict_match(home_team, away_team, fit, max_goals = 8,
-  markets = "result", over_under_goals = 2.5, zero_inflated = FALSE)
+poisson_predict_match(
+  home_team,
+  away_team,
+  fit,
+  max_goals = 8,
+  markets = c("result", "over_under", "both_teams_to_score"),
+  over_under_goals = 2.5
+)
 }
 \arguments{
 \item{home_team}{the name of the home_team}
@@ -20,8 +26,6 @@ poisson_predict_match(home_team, away_team, fit, max_goals = 8,
 
 \item{over_under_goals}{a number usual 0.5, 1.5, 2.5, etc though could be a whole number. Only comes into play if 
 markets is "over_under"}
-
-\item{zero_inflated}{default FALSE, if TRUE will use zero inflated poisson}
 }
 \value{
 a tibble of probabilities for each outcome

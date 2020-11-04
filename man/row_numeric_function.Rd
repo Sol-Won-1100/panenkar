@@ -4,8 +4,14 @@
 \alias{row_numeric_function}
 \title{Row Numeric Function}
 \usage{
-row_numeric_function(x, ..., na_rm = TRUE, append_col = TRUE,
-  new_col_name = NA, f)
+row_numeric_function(
+  x,
+  ...,
+  na_rm = TRUE,
+  append_col = TRUE,
+  new_col_name = NA,
+  f
+)
 }
 \arguments{
 \item{x}{a tibble}

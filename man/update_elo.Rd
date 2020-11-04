@@ -4,8 +4,18 @@
 \alias{update_elo}
 \title{Update ELO}
 \usage{
-update_elo(elo_home, elo_away, home, draw, away, advantage_home = 80,
-  x = 10, y = 400, z = 175, output_format = "tibble")
+update_elo(
+  elo_home,
+  elo_away,
+  home,
+  draw,
+  away,
+  advantage_home = 80,
+  x = 10,
+  y = 400,
+  z = 175,
+  output_format = "tibble"
+)
 }
 \arguments{
 \item{elo_home}{The current elo rating of the home team}

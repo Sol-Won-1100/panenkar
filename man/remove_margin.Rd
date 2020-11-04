@@ -4,8 +4,12 @@
 \alias{remove_margin}
 \title{Remove Margin}
 \usage{
-remove_margin(prob_with_margin, margin, num_selections = 3,
-  method = "proportional")
+remove_margin(
+  prob_with_margin,
+  margin,
+  num_selections = 3,
+  method = "proportional"
+)
 }
 \arguments{
 \item{prob_with_margin}{the implied probability of a selection occurring. 
