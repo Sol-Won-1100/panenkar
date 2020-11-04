@@ -109,10 +109,3 @@ test_that("poisson_fit works as expected", {
 })
 
 
-test_that("", {
-  
-
-  
-})
-
-
