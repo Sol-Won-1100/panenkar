@@ -287,7 +287,29 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8, mar
 #' @return fitted model
 #' @export
 
-poisson_fit <- function(model_data, zero_inflated = FALSE){
+poisson_fit <- function (model_data, zero_inflated = FALSE){
+  
+  if (!is.data.frame(model_data)) {
+    
+    stop("'model_data' must be a tibble or data frame")
+    
+  }
+  
+  model_data_cols <- colnames(model_data)
+  expected_cols <- c("match_date", "attack", "defence", "goals", "location", "time_weight")
+  missing_cols <- model_data_cols[!(model_data_cols %in% expected_cols)]
+  
+  if (length(missing_cols) > 0) {
+    
+    stop(paste0(paste(missing_cols, collapse = ", "), " cols must be in model_data"))
+    
+  } 
+  
+  if (!is.logical(zero_inflated)) {
+    
+    stop("'zero_inflated' must be TRUE or FALSE")
+    
+  }
   
   if (zero_inflated == FALSE) {
     
