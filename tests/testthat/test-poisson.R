@@ -142,8 +142,10 @@ test_that("poisson_predict_match with standard poisson model works as expected",
                                      over_under_goals = "dog"))
   
   expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "over_under", over_under_goals = -2))
-  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = "cat"), NA)
-  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = -2), NA)
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "result", over_under_goals = "cat"), 
+               NA)
+  
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "result", over_under_goals = -2), NA)
 
 })
 
@@ -189,8 +191,10 @@ test_that("poisson_predict_match with zero inflated model works as expected", {
                                      over_under_goals = "dog"))
   
   expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "over_under", over_under_goals = -2))
-  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = "cat"), NA)
-  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, over_under_goals = -2), NA)
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "result", over_under_goals = "cat"), 
+               NA)
+  
+  expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "result", over_under_goals = -2), NA)
   
 })
 

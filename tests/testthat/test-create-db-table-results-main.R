@@ -3,10 +3,6 @@ context("Create Database Table: Results Main")
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
-library(tidyverse)
-library(lubridate)
-library(magrittr)
-
 wd_test <- here::here() %>% paste0("/tests/testthat/")
 
 file_raw_main <- paste0(wd_test, "tur_sl_2019_2020.csv") 
