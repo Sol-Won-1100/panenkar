@@ -230,7 +230,7 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8,
   
   if (!(home_team %in% teams_attack) | !(home_team %in% teams_defence) | !(away_team %in% teams_attack) |
       !(away_team %in% teams_defence)) {
-    
+
     predictions <- tibble(home_goals_predicted = NA_real_, away_goals_predicted  = NA_real_)
     
     if ("result" %in% markets) {
@@ -253,6 +253,8 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8,
       predictions <-bind_cols(predictions, tibble(btts_yes_prob = NA_real_, btts_no_prob = NA_real_))
       
     } 
+    
+    return(predictions)
     
   }
   

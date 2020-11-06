@@ -11,7 +11,7 @@ calc_rps(predicted, observed, average_all = FALSE)
 e.g. home, draw, away. Columns must sum to 1.}
 
 \item{observed}{a vector of actual outcomes corresponding to the columns in predicted e.g if 1 then the outcome in
-the first column of predicted actually occurred}
+the first column of predicted actually occurred, you could also pass implied probabilities}
 
 \item{average_all}{default FALSE is TRUE the usual output, a vector of scores for each match, is averaged so only a
 single value is returned.}

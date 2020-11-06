@@ -4,11 +4,11 @@
 #' Calculates the rank probability score of forecasts
 #' 
 #' @param predicted a matrix, data frame or tibble of probabilities, each row is a match and each column is an outcome
-#'                  e.g. home, draw, away. Columns must sum to 1.
+#'  e.g. home, draw, away. Columns must sum to 1.
 #' @param observed a vector of actual outcomes corresponding to the columns in predicted e.g if 1 then the outcome in
-#'                 the first column of predicted actually occurred
+#' the first column of predicted actually occurred, you could also pass implied probabilities
 #' @param average_all default FALSE is TRUE the usual output, a vector of scores for each match, is averaged so only a
-#'                    single value is returned.
+#' single value is returned.
 
 calc_rps <- function(predicted, observed, average_all = FALSE){
   
