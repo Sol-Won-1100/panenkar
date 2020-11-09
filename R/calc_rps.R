@@ -9,10 +9,10 @@
 #' the first column of predicted actually occurred, you could also pass implied probabilities
 #' @param average_all default FALSE is TRUE the usual output, a vector of scores for each match, is averaged so only a
 #' single value is returned.
+#' @return the rps for each match or average rps score. Smaller score is better.
+#' @export
 
 calc_rps <- function(predicted, observed, average_all = FALSE){
-  
-  predicted <- as.matrix(predicted)
   
   num_outcomes <- ncol(predicted)
   num_predicted <- nrow(predicted)

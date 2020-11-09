@@ -7,20 +7,15 @@
 min_season(season_ids, remove_na = TRUE)
 }
 \arguments{
-\item{season_ids}{season_id in one of two formats, either a single 4 digit
-number representing the year or a character string in the format 1999_2000 to
-represent seasons which extend over successive years, typical in European
+\item{season_ids}{season_id in one of two formats, either a single 4 digit number representing the year or a 
+character string in the format 1999_2000 to represent seasons which extend over successive years, typical in European
 football.}
 
-\item{remove_na}{should NAs be ignored}
+\item{remove_na}{should NAs be ignored, default TRUE}
 }
 \value{
 The minimum season_id
 }
 \description{
 Determine the minimum season from a vector of season ids
-}
-\examples{
-seasons <- sequence_seasons("2015_2016", "2019_2020")
-min_season(seasons)
 }

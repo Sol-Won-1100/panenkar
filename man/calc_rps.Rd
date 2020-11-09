@@ -16,6 +16,9 @@ the first column of predicted actually occurred, you could also pass implied pro
 \item{average_all}{default FALSE is TRUE the usual output, a vector of scores for each match, is averaged so only a
 single value is returned.}
 }
+\value{
+the rps for each match or average rps score. Smaller score is better.
+}
 \description{
 Calculates the rank probability score of forecasts
 }

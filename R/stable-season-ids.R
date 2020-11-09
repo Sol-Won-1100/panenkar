@@ -1,73 +1,50 @@
 
-
 #' Sequence Seasons
 #'
 #' Create a sequence of seasons between start and end seasons
 #'
-#' @param start_season Takes two formats of season, either a single 4 digit
-#' number representing the year or a character string in the format 1999_2000 to
-#' represent seasons which extend over successive years, typical in European
-#' football
-#' @param end_season End season in the same format as start_season. Must come
-#' after start_season
-#' @return A sequence of seasons between and including the start and end
-#' seasons.
+#' @param start_season a season_id
+#' @param end_season a season_id must come after start_season
+#' @return A sequence of seasons between and including the start and end seasons.
 #' @export
 #' @examples
 #' sequence_seasons("2015_2016", "2019_2020")
 #' sequence_seasons(2000, 2008)
 
 sequence_seasons <- function(start_season, end_season){
-  
-  ## Error handling
-  
-  if(class(start_season) != class(end_season)){
-    stop("start_season and end_season must be both numeric or both character")
-  }
-  
-  if(!is.character(start_season) & !is.numeric(start_season)){
-    stop("start_season and end_season must be both numeric or both character")
-  }
-  
-  if(is.character(start_season)){
+ 
+  if (is_season_id(start_season) == FALSE) {
     
-    # Multiple years is a season which starts in one year n then finishes in
-    # n + 1 otherwise season takes place within a single year
+    stop("'start_season' must be a season_id")
+    
+  } 
+  
+  if (is_season_id(end_season) == FALSE) {
+    
+    stop("'end_season' must be a season_id")
+    
+  } 
+  
+  num_chars <- nchar(start_season)
+  
+  if (num_chars != nchar(end_season)) {
+    
+    stop("'start_season' and 'end_season' must in the same format, single or multi year")
+    
+  }
+  
+  if (num_chars == 4) {
+    
+    season_format <- "single_year"
+    
+  } else {
     
     season_format <- "multiple_years"
     
-    if(nchar(start_season) != 9){
-      stop("start_season must have nine characters in format YYYY_YYYY")
-    }
-    
-    if(nchar(end_season) != 9){
-      stop("end_season must have nine characters in format YYYY_YYYY")
-    }
-    
-  } else {
-    season_format <- "single_year"
-    
-    if(start_season > end_season){
-      stop("start_season must come before or be the same as end_season")
-    }
-    
-    
-  }
-  
-  if(length(start_season) > 1){
-    start_season <- start_season[1]
-    warnings("length of start_season is > 1 so only first element will be used")
   }
   
   
-  if(length(end_season) > 1){
-    end_season <- end_season[1]
-    warnings("length of end_season is > 1 so only first element will be used")
-  }
-  
-  ## Sequence the years, depending on the format
-  
-  if(season_format == "multiple_years"){
+  if (season_format == "multiple_years") {
     
     start_season1 <- start_season %>%
       str_sub(start = 1, end = 4) %>%
@@ -77,8 +54,10 @@ sequence_seasons <- function(start_season, end_season){
       str_sub(start = 1, end = 4) %>%
       as.numeric()
     
-    if(start_season1 > end_season1){
-      stop("start_season must come before or be the same as end_season")
+    if (start_season1 > end_season1) {
+      
+      stop("'start_season' must come before or be the same as 'end_season'")
+      
     }
     
     seasons1 <- start_season1:end_season1
@@ -91,153 +70,221 @@ sequence_seasons <- function(start_season, end_season){
       str_sub(start = 6, end = 9) %>%
       as.numeric()
     
-    if(start_season2 > end_season2){
-      stop("start_season must come before or be the same as end_season")
-    }
-    
     seasons2 <- start_season2:end_season2
     
     seasons <- paste0(seasons1, "_", seasons2)
     
   } else {
     
-    if(season_format != "single_year"){
-      warning("bad season_format specified, assuming single_year")
+    start_season <- as.numeric(start_season)
+    end_season <- as.numeric(end_season)
+    
+    if (start_season > end_season) {
+      
+      stop("'start_season' must come before or be the same as 'end_season'")      
+      
     }
     
-    seasons <- start_season:end_season
+    seasons <- as.character(start_season:end_season)
+    
   }
   
   return(seasons)
-}
-
-
-
-#' Maximum Season
-#'
-#' Determine the maximum season from a vector of season ids
-#'
-#' @param season_ids season_id in one of two formats, either a single 4 digit
-#' number representing the year or a character string in the format 1999_2000 to
-#' represent seasons which extend over successive years, typical in European
-#' football.
-#' @param remove_na should NAs be ignored
-#' @return The maximum season_id
-#' @export
-#' @examples
-#' seasons <- sequence_seasons("2015_2016", "2019_2020")
-#' min_season(seasons)
-
-max_season <- function(season_ids, remove_na = TRUE){
-  
-  if(is.numeric(season_ids)){
-    return(max(season_ids, na.rm = remove_na))
-  } else {
-    season_ids_start <- season_ids %>% str_sub(1, 4) %>% as.numeric()
-    index <- which(season_ids_start == max(season_ids_start, na.rm = remove_na))
-    return(season_ids[index[1]])
-  }
   
 }
-
-
 
 
 #' Minimum Season
 #'
 #' Determine the minimum season from a vector of season ids
 #'
-#' @param season_ids season_id in one of two formats, either a single 4 digit
-#' number representing the year or a character string in the format 1999_2000 to
-#' represent seasons which extend over successive years, typical in European
+#' @param season_ids season_id in one of two formats, either a single 4 digit number representing the year or a 
+#' character string in the format 1999_2000 to represent seasons which extend over successive years, typical in European
 #' football.
-#' @param remove_na should NAs be ignored
+#' @param remove_na should NAs be ignored, default TRUE
 #' @return The minimum season_id
 #' @export
-#' @examples
-#' seasons <- sequence_seasons("2015_2016", "2019_2020")
-#' min_season(seasons)
 
-min_season <- function(season_ids, remove_na = TRUE){
+min_season <- function (season_ids, remove_na = TRUE) f_season(season_ids, remove_na, f = min)
+
+#' Maximum Season
+#'
+#' Determine the maximum season from a vector of season ids
+#'
+#' @param season_ids season_id in one of two formats, either a single 4 digit number representing the year or a 
+#' character string in the format 1999_2000 to represent seasons which extend over successive years, typical in European
+#' football.
+#' @param remove_na should NAs be ignored, default TRUE
+#' @return The minimum season_id
+#' @export
+
+max_season <- function (season_ids, remove_na = TRUE) f_season(season_ids, remove_na, f = max)
+
+#' F Season
+#'
+#' Helper for min and max season functions. The code is the same expect the call to the min or max function so to avoid
+#' duplication the functions min or max are passed to the f_season function.
+#'
+#' @param season_ids season_id in one of two formats, either a single 4 digit number representing the year or a 
+#' character string in the format 1999_2000 to represent seasons which extend over successive years, typical in European
+#' football.
+#' @param remove_na should NAs be ignored, default TRUE
+#' @param f the function to use on the season_ids, min or max
+
+f_season <- function (season_ids, remove_na, f){
+
+  num_season_ids <- length(season_ids)
   
-  if(is.numeric(season_ids)){
-    return(min(season_ids, na.rm = remove_na))
+  season_ids <- season_ids[map_lgl(season_ids, is_season_id)] # Only retain season_ids
+  
+  if (length(season_ids) < 1) {
+    
+    stop("bad 'season_ids'")
+    
+  }
+  
+  num_chars_id <- season_ids %>% nchar() %>% unique()
+  
+  if (length(num_chars_id) > 1) {
+    
+    stop("'season_ids' must be in a single format, either single year or multi year")
+    
+  }
+  
+  if (num_chars_id == 4){
+    
+    return(as.character(f(season_ids, na.rm = remove_na)))
+    
   } else {
+    
     season_ids_start <- season_ids %>% str_sub(1, 4) %>% as.numeric()
-    index <- which(season_ids_start == min(season_ids_start, na.rm = remove_na))
+    index <- which(season_ids_start == f(season_ids_start, na.rm = remove_na))
+    
     return(season_ids[index[1]])
   }
   
 }
 
-
-
-#' @title Previous Season
+#' Previous Season
 #'
-#' @description Get previous season_id
+#' Get previous season_id
 #'
-#' @param season_id season_id in form XXXX_XXXX or XXXX
+#' @param season_id season_id in form XXXX_XXXX or XXXX or a vector of season_ids
 #' 
 #' @return season_id
 #' @export
 
-previous_season <- Vectorize(function(season_id){
+
+previous_season <- function(season_ids) {
+
+  num_season_ids <- length(season_ids)
   
-  if(is.numeric(season_id)){
-    season_id_previous <- season_id - 1
+  check_season_ids <- map_lgl(season_ids, is_season_id)
+  
+  season_ids_previous <- character(length = num_season_ids)
+  
+  for (i in seq_along(1:num_season_ids)) {
     
-  } else {
-    start_season <- season_id %>% str_sub(1, 4) %>% as.numeric()
+    if (check_season_ids[i] == FALSE) {
+      
+      season_ids_previous[i] <- NA_character_
+      
+    } else if (nchar(season_ids[i]) == 4) {
+      
+      season_ids_previous[i] <- as.character(as.numeric(season_ids[i]) - 1)
+      
+    } else if (nchar(season_ids[i]) == 9) {
+      
+      start_season <- season_ids[i] %>% str_sub(1, 4) %>% as.numeric()
+      
+      season_ids_previous[i] <- paste0(start_season - 1, "_", start_season)
+      
+    }
     
-    season_id_previous <- paste0(start_season - 1, "_", start_season)
   }
   
-  return(season_id_previous)
-})
+  return(season_ids_previous)
+
+}
 
 
+#' Check Season ID
+#'
+#' Check that season_id is in a correct format
+#'
+#' @param season_id the season_id to check
+#'
+#' @return a list, first element is TRUE or FALSE telling you if the argument was a season_is, the 2nd is the error
+#' message
+#' 
+#' @note this is intended as helper function for verifying arguments 
 
-#' Error Check Season ID
-#'
-#' Check that competition_id is in a correct format
-#'
-#' @param season_id See \link[panenkar]{sequence_seasons} for format details
-#'
-#' @return \code{TRUE} or \code{FALSE} indicating validity of the format of
-#' season_id
-#'
-#' @examples
-#'
-#' .error_check_season_id("2018_2019") # Will return TRUE
-#' .error_check_season_id("2018_2020") # FALSE
-#' .error_check_season_id(2018) # TRUE
+is_season_id <- function (season_id) {
+    
+  if (!is.character(season_id)) {
 
-error_check_season_id <- function(season_id){
+    return(FALSE)
   
-  if(is.character(season_id)){
+  }
+  
+  num_ids <- length(season_id)
+  
+  if (num_ids > 1) {
     
-    if(nchar(season_id) != 9){
-      return(FALSE)
-      
-    }
+    warning_message <- paste("'season_id' has length", num_ids, ", expected 1. Returning 'FALSE'.")
+    warning(warning_message)
     
-    season_start_year <- str_sub(season_id, 1, 4) %>% as.numeric()
-    season_end_year <- str_sub(season_id, 6, 9) %>% as.numeric()
+    return(FALSE)
     
-    if(season_end_year - season_start_year != 1){
-      return(FALSE)
-      
-    } else {
-      return(TRUE)
-      
-    }
+  }
+  
+  
+  season_id <- season_id[!is.null(season_id)]
+  season_id <- season_id[!is.na(season_id)]
+  
+  if (length(season_id) == 0) {
     
-  } else if(is.numeric(season_id)){
+    return(FALSE)
+    
+  }
+  
+  min_possible_season <- 1800
+  max_possible_season <- 2150
+  
+  
+  if (nchar(season_id) == 4) {
+
+    suppressWarnings(
+      season_id <- as.numeric(season_id)      
+    )
+
+    if (is.na(season_id)) return(FALSE) 
+    
+    if (season_id < min_possible_season) return(FALSE)
+    
+    if (season_id > max_possible_season) return(FALSE)
+    
+    return(TRUE)
+    
+  } else if (nchar(season_id) == 9) {
+    
+    if (str_detect(season_id, "[:digit:]{4}_[:digit:]{4}") == FALSE) return(FALSE)
+
+    start_year <- season_id %>% str_sub(1, 4) %>% as.numeric()
+    end_year <- season_id %>% str_sub(6, 9) %>% as.numeric()
+    
+    if(start_year < min_possible_season) return(FALSE)
+    if(start_year > max_possible_season) return(FALSE)
+    if(end_year - start_year != 1) return(FALSE)
+    
     return(TRUE)
     
   } else {
+    
     return(FALSE)
+    
   }
+
 }
 
 

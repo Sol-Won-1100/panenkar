@@ -84,6 +84,8 @@ add_dependent_feature_fd <- function(x, feature) {
 #' add_dependent_feature
 #'
 #' @param x results database
+#' @returrn x but with the match numbers added in as columns
+#' @export
 
 add_match_numbers_season <- function(x){
 

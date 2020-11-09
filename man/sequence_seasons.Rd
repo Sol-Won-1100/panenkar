@@ -7,17 +7,12 @@
 sequence_seasons(start_season, end_season)
 }
 \arguments{
-\item{start_season}{Takes two formats of season, either a single 4 digit
-number representing the year or a character string in the format 1999_2000 to
-represent seasons which extend over successive years, typical in European
-football}
+\item{start_season}{a season_id}
 
-\item{end_season}{End season in the same format as start_season. Must come
-after start_season}
+\item{end_season}{a season_id must come after start_season}
 }
 \value{
-A sequence of seasons between and including the start and end
-seasons.
+A sequence of seasons between and including the start and end seasons.
 }
 \description{
 Create a sequence of seasons between start and end seasons

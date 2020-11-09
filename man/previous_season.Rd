@@ -4,10 +4,10 @@
 \alias{previous_season}
 \title{Previous Season}
 \usage{
-previous_season(season_id)
+previous_season(season_ids)
 }
 \arguments{
-\item{season_id}{season_id in form XXXX_XXXX or XXXX}
+\item{season_id}{season_id in form XXXX_XXXX or XXXX or a vector of season_ids}
 }
 \value{
 season_id
