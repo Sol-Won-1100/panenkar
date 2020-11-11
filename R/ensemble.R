@@ -72,7 +72,8 @@ build_ensemble <- function (predictions, ensemble_weights) {
     
   }
   
-  predictions <- map(predictions, ~matrix(. ,nrow = num_matches, ncol = num_outcomes))
+  predictions <- map(predictions, ~matrix(unlist(.) ,nrow = num_matches, ncol = num_outcomes))
+
   is_element_numeric <- map_lgl(predictions, is.numeric)
   
   if (sum(is_element_numeric) != length(is_element_numeric)) {
@@ -127,7 +128,6 @@ build_ensemble <- function (predictions, ensemble_weights) {
 
 calc_ensemble_weights <- function(predictions, observed) {
   
-  
   if (!is.list(predictions)) {
     
     stop("'predictions' must be a list")
@@ -154,7 +154,6 @@ calc_ensemble_weights <- function(predictions, observed) {
   
   num_outcomes <- ncol(predictions[[1]])
   num_matches <- nrow(predictions[[1]])
-  
   
   for (model_num in seq_along(2:num_models)) {
     
@@ -187,15 +186,15 @@ calc_ensemble_weights <- function(predictions, observed) {
     
   }
   
-  if (num_outcomes != nrow(outcomes)) {
+  if (num_outcomes != ncol(observed)) {
     
     stop("'predicted' elements and observed must have same number of cols.")
     
   }
   
   
-  predictions <- map(predictions, ~matrix(. ,nrow = num_matches, ncol = num_outcomes))
-  is_element_numeric <- map(predictions, is.numeric)
+  predictions <- map(predictions, ~matrix(unlist(.) ,nrow = num_matches, ncol = num_outcomes))
+  is_element_numeric <- map_lgl(predictions, is.numeric)
   
   if (sum(is_element_numeric) != length(is_element_numeric)) {
     
