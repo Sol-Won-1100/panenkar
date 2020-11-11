@@ -1,10 +1,6 @@
 
 context("Ensemble")
 
-# Delete
-library(testthat)
-library(dplyr)
-library(purrr)
 
 test_that("build_ensemble works as expected", {
   
