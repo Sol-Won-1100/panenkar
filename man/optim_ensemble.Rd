@@ -7,11 +7,11 @@
 optim_ensemble(ensemble_weights, predictions, observed)
 }
 \arguments{
-\item{ensemble_weights}{see \link[build_ensemble]}
+\item{ensemble_weights}{see \code{\link{build_ensemble}}}
 
-\item{predictions}{see \link[build_ensemble]}
+\item{predictions}{see \code{\link{build_ensemble}}}
 
-\item{observed}{see \link[calc_ensemble_Weights]}
+\item{observed}{see \code{\link{calc_ensemble_Weights}}}
 }
 \value{
 rps for that weighting

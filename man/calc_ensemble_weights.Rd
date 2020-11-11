@@ -7,7 +7,7 @@
 calc_ensemble_weights(predictions, observed)
 }
 \arguments{
-\item{predictions}{see \link[build_ensemble]}
+\item{predictions}{see \code{\link{build_ensemble}}}
 
 \item{observed}{actual outcomes, possibly closing implied probs from closing odds or 0 1 indicators for actual 
 outcomes}

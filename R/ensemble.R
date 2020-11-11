@@ -119,7 +119,7 @@ build_ensemble <- function (predictions, ensemble_weights) {
 #' 
 #' Optimises a set of weights given a list of separate match outcome probabilities and the observed probabilities
 #' 
-#' @param predictions see \link[build_ensemble]
+#' @param predictions see \code{\link{build_ensemble}}
 #' @param observed actual outcomes, possibly closing implied probs from closing odds or 0 1 indicators for actual 
 #' outcomes
 #' 
@@ -220,9 +220,9 @@ calc_ensemble_weights <- function(predictions, observed) {
 #' 
 #' Helper function for deriviing optimum model weights
 #' 
-#' @param ensemble_weights see \link[build_ensemble]
-#' @param predictions see \link[build_ensemble]
-#' @param observed see \link[calc_ensemble_Weights]
+#' @param ensemble_weights see \code{\link{build_ensemble}}
+#' @param predictions see \code{\link{build_ensemble}}
+#' @param observed see \code{\link{calc_ensemble_Weights}}
 #' 
 #' @return rps for that weighting
 

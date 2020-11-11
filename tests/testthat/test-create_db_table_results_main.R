@@ -6,7 +6,7 @@ context("Create Database Table: Results Main")
 wd_test <- here::here() %>% paste0("/tests/testthat/")
 
 file_raw_main <- paste0(wd_test, "tur_sl_2019_2020.csv") 
-results_main_league_raw <- read_csv(file_raw_main)
+results_main_league_raw <- readr::read_csv(file_raw_main)
 results_main_league <- create_db_table_results_main_fd_main(file_raw_main)
 
 file_raw_extra <- paste0(wd_test, "den_sl_all.csv")
