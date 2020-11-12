@@ -7,16 +7,16 @@
 probit_predict_match(home_team, away_team, fit, market = "result")
 }
 \arguments{
-\item{home_team}{the name of the home_team}
+\item{home_team}{name of home team}
 
-\item{away_team}{the name of the away_team}
+\item{away_team}{name of away team}
 
-\item{fit}{fitted model using ordered probit}
+\item{fit}{fitted probit model, output from probit_fit}
 
-\item{market}{only "result" applicable currently}
+\item{market}{market type only supports result currently Default: 'result'}
 }
 \value{
-a tibble of probabilities for each outcome
+outcome probabilities
 }
 \description{
 Predict a match using ordered probit model

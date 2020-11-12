@@ -1,10 +1,12 @@
 
-#' Probit Predict Matches Update
-#' 
-#' Predict multiple matches using probit, updating the training set in the process
-#' 
-#' @param fixtures match fixtures, columns of which must be "home_team" and "away_team". For the rest of the parameters
-#'        and return see probit_predict_match.R
+#' @title Probit Simulate Matches
+#' @description #' Predict multiple matches using ordered probit model, updating the training set in the process
+#' @param training_set, columns of which must be "home_team", "away_team", "result", "match_date"
+#' @param test_set, same column restrictions as training_set
+#' @param market Only 'result' currently valid, argument present for future development Default: 'result'
+#' @return probabilities for outcomes  for each match in the test set
+#' @rdname probit_simulate_matches
+#' @export 
 
 probit_simulate_matches <- function (training_set, test_set, market = "result") {
   
@@ -36,12 +38,14 @@ probit_simulate_matches <- function (training_set, test_set, market = "result") 
 }
 
 
-#' Probit Predict Matches Simple
-#' 
-#' Predict multiple matches using probit model with no updating of training sets or anything
-#' 
-#' @param fixtures match fixtures, columns of which must be "home_team" and "away_team". For the rest of the parameters
-#'        and return see probit_predict_match.R
+#' @title Probit Predict Matches
+#' @description Predict multiple matches using ordered probit model
+#' @param fixtures a tibble columns of which must be "home_team", "away_team", "result"
+#' @param fit the fitted probit model, output from probit_fit
+#' @return outcome probabilities for the fixtures
+#' @rdname probit_predict_matches
+#' @export 
+
 
 probit_predict_matches <- function (fixtures, fit, market = "result") {
   
@@ -69,16 +73,15 @@ probit_predict_matches <- function (fixtures, fit, market = "result") {
 }
 
 
-#' Probit Predict Match
-#' 
-#' Predict a match using ordered probit model
-#' 
-#' @param home_team the name of the home_team
-#' @param away_team the name of the away_team
-#' @param fit fitted model using ordered probit
-#' @param market only "result" applicable currently
-#'        
-#' @return a tibble of probabilities for each outcome
+#' @title Probit Predict Match
+#' @description Predict a match using ordered probit model
+#' @param home_team name of home team
+#' @param away_team name of away team
+#' @param fit fitted probit model, output from probit_fit
+#' @param market market type only supports result currently Default: 'result'
+#' @return outcome probabilities
+#' @rdname probit_predict_match
+#' @export 
 
 probit_predict_match <- function(home_team, away_team, fit, market = "result"){
   
@@ -169,13 +172,12 @@ probit_predict_match <- function(home_team, away_team, fit, market = "result"){
 }
 
 
-#' Probit Fit
-#' 
-#' A wrapper for the polr function with the specs required for order probit model
-#' 
-#' @param model_data output from probit_build_model_data function
-#' 
+#' @title Probit Fit
+#' @description Fitted an ordered probit model
+#' @param model_data Output from \code{\link{probit_build_model_data}}
 #' @return fitted model
+#' @rdname probit_fit
+#' @export 
 
 
 probit_fit <- function(model_data){

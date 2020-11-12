@@ -7,11 +7,11 @@
 probit_fit(model_data)
 }
 \arguments{
-\item{model_data}{output from probit_build_model_data function}
+\item{model_data}{Output from \code{\link{probit_build_model_data}}}
 }
 \value{
 fitted model
 }
 \description{
-A wrapper for the polr function with the specs required for order probit model
+Fitted an ordered probit model
 }

@@ -2,14 +2,20 @@
 % Please edit documentation in R/probit.R
 \name{probit_simulate_matches}
 \alias{probit_simulate_matches}
-\title{Probit Predict Matches Update}
+\title{Probit Simulate Matches}
 \usage{
 probit_simulate_matches(training_set, test_set, market = "result")
 }
 \arguments{
-\item{fixtures}{match fixtures, columns of which must be "home_team" and "away_team". For the rest of the parameters
-and return see probit_predict_match.R}
+\item{training_set, }{columns of which must be "home_team", "away_team", "result", "match_date"}
+
+\item{test_set, }{same column restrictions as training_set}
+
+\item{market}{Only 'result' currently valid, argument present for future development Default: 'result'}
+}
+\value{
+probabilities for outcomes  for each match in the test set
 }
 \description{
-Predict multiple matches using probit, updating the training set in the process
+#' Predict multiple matches using ordered probit model, updating the training set in the process
 }

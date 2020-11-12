@@ -2,14 +2,18 @@
 % Please edit documentation in R/probit.R
 \name{probit_predict_matches}
 \alias{probit_predict_matches}
-\title{Probit Predict Matches Simple}
+\title{Probit Predict Matches}
 \usage{
 probit_predict_matches(fixtures, fit, market = "result")
 }
 \arguments{
-\item{fixtures}{match fixtures, columns of which must be "home_team" and "away_team". For the rest of the parameters
-and return see probit_predict_match.R}
+\item{fixtures}{a tibble columns of which must be "home_team", "away_team", "result"}
+
+\item{fit}{the fitted probit model, output from probit_fit}
+}
+\value{
+outcome probabilities for the fixtures
 }
 \description{
-Predict multiple matches using probit model with no updating of training sets or anything
+Predict multiple matches using ordered probit model
 }
