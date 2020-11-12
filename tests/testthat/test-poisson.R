@@ -1,19 +1,5 @@
 
-
 context("Poisson models")
-
-# Tests the following functions from stable-poisson.R
-#
-# poisson_time_weights
-# poisson_build_model_data
-# poisson_fit
-#
-# To Do
-# poisson_simulate_matches
-# poisson_predict_matches
-# poisson_predict_match
-
-
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
@@ -92,9 +78,9 @@ test_that("poisson_fit works as expected", {
   expect_equal(coef_names_poisson, coef_names_zero_inflated)
   expect_equal(coef_names_poisson, expected_paras)
   
-  expect_error(fit_poisson(bad_model_data))
-  expect_error(fit_poisson("snake"))
-  expect_error(fit_poisson(model_data, 12))
+  expect_error(poisson_fit(bad_model_data))
+  expect_error(poisson_fit("snake"))
+  expect_error(poisson_fit(model_data, 12))
   
     
 })
@@ -131,6 +117,8 @@ test_that("poisson_predict_match with standard poisson model works as expected",
   expect_equal(nrow(predicted_all), 1)
   
   expect_warning(poisson_predict_match("Celtic", "Celtic", fit_poisson))
+  
+  expect_error(poisson_predict_match(c("Celtic", "Aberdeen"), c("Rangers", "Hearts"), fit_poisson))
   expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = "blah"))
   expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, markets = 2222))
   expect_error(poisson_predict_match("Celtic", "Rangers", fit_poisson, max_goals = -1))

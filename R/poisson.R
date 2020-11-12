@@ -129,6 +129,9 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8,
   
   # Error handling
 
+  home_team <- unlist(home_team)
+  away_team <- unlist(away_team)
+
   if (class(fit)[1] == "zeroinfl") {
     
     zero_inflated <- TRUE
@@ -160,6 +163,33 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8,
   if (round(max_goals) != max_goals) {
     
     stop("'max_goals' must be a whole number")
+    
+  }
+  
+  if (!is.character(home_team)) {
+    
+    stop ("'home_team' must be of class 'character'")
+    
+  }
+  
+  if (!is.character(away_team)) {
+    
+    stop ("'away_team' must be of class 'character'")
+    
+  }
+  
+  length_home_team <- length(home_team)
+  length_away_team <- length(away_team)
+  
+  if (length_home_team != 1) {
+    
+    stop (glue("'home_team' must be length 1 not {length_home_team}."))
+    
+  }
+  
+  if (length_away_team != 1) {
+    
+    stop (glue("'home_team' must be length 1 not {length_home_team}."))
     
   }
   
@@ -205,12 +235,6 @@ poisson_predict_match <- function(home_team, away_team, fit,  max_goals = 8,
     stop(paste0("bad markets supplied must be one of result, over_under, both_teams_to_score"))
     
   }
-  
-  
-  # Consistency checks
-  
-  home_team <- unlist(home_team)
-  away_team <- unlist(away_team)
   
   if (zero_inflated == FALSE) {
     
