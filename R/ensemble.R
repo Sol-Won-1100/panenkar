@@ -222,7 +222,7 @@ calc_ensemble_weights <- function(predictions, observed) {
 #' 
 #' @param ensemble_weights see \code{\link{build_ensemble}}
 #' @param predictions see \code{\link{build_ensemble}}
-#' @param observed see \code{\link{calc_ensemble_Weights}}
+#' @param observed see \code{\link{calc_ensemble_weights}}
 #' 
 #' @return rps for that weighting
 
