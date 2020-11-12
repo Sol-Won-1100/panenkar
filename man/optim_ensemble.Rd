@@ -11,7 +11,7 @@ optim_ensemble(ensemble_weights, predictions, observed)
 
 \item{predictions}{see \code{\link{build_ensemble}}}
 
-\item{observed}{see \code{\link{calc_ensemble_Weights}}}
+\item{observed}{see \code{\link{calc_ensemble_weights}}}
 }
 \value{
 rps for that weighting
