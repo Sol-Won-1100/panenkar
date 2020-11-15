@@ -19,7 +19,8 @@ Depends:
   lubridate,
   ggplot2,
   stringr,
-  pscl
+  pscl,
+  glue
 RoxygenNote: 7.1.1
 Suggests: 
     testthat

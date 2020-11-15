@@ -76,35 +76,7 @@ add_dependent_feature_fd <- function(x, feature) {
 }
 
 
-#' @title Add Match Numbers Season
-#'
-#' @description Adds in the match number in the season for 
-#' the home team and the away team to the results database. For consistent 
-#' syntax for adding features this function is a helper called by 
-#' add_dependent_feature
-#'
-#' @param x results database
-#' @returrn x but with the match numbers added in as columns
-#' 
 
-add_match_numbers_season <- function(x){
-
-  x_subset_with_match_number <- x %>%
-    pivot_longer(cols = home_team:away_team, names_to = "location", values_to = "team") %>%
-    group_by(season_id, team) %>%
-    mutate(match_number_season = 1:n()) %>%
-    ungroup()
-  
-  x_subset_with_match_number_home <- filter(x_subset_with_match_number, location == "home_team")
-  x_subset_with_match_number_away <- filter(x_subset_with_match_number, location == "away_team") 
-  
-  x_with_match_number_season <- mutate(x, 
-                                       home_match_number_season = x_subset_with_match_number_home$match_number_season,
-                                       away_match_number_season = x_subset_with_match_number_away$match_number_season)
-  
-  return(x_with_match_number_season)
-  
-}
 
 
 #' @title Add Promotion Relegation
