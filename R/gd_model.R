@@ -1,10 +1,4 @@
 
-
-# Just about there need to finish the simulation function. There was a warning getting flashed up from the gd_calc_rating
-# function which is odd so investigate that. Once done the simulation function you will want to run the optim function
-# to derive xi and test a few values of gd.
-
-
 # Exports --------------------------------------------------------------------------------------------------------------
 
 #' @title Goal Difference Model Simulate Matches
@@ -142,7 +136,14 @@ gd_predict_matches <- function(historic_results, fit, match_rating, market = "re
 #' @rdname gd_predict_matches
 #' @export 
 
-gd_calc_ratings <- function(results, teams, current_date, xi, max_gd, min_matches) {
+gd_calc_ratings <- function(results, teams, current_date, xi, max_gd = NA, min_matches = 10) {
+  
+  if (!is.character(teams)) {
+    
+    stop(glue("'teams' must be of class character not {class(teams)}."))
+    
+  }
+  
   
   list(.team = teams) %>%
     pmap_dbl(gd_calc_rating, results = results, current_date = current_date, xi = xi, max_gd = max_gd, 
@@ -183,6 +184,13 @@ gd_optim_xi <- function(training_set, test_set, start_xi, max_gd, min_matches) {
 
 gd_add_ratings <- function(results, xi, max_gd = NA, min_matches = 10) {
   
+  expected_cols <- c("home_team", "away_team", "match_date")
+  
+  check_arg_results(results, expected_cols)
+  check_arg_xi(xi)
+  gd_check_arg_max_gd(max_gd)
+  gd_check_arg_min_matches(min_matches)
+  
   results <- mutate(results, home_rating = NA_real_, away_rating = NA_real_)
   
   for (i in (min_matches + 1):nrow(results)) {
@@ -216,13 +224,15 @@ gd_add_ratings <- function(results, xi, max_gd = NA, min_matches = 10) {
 # Calculate a rating for a single team given a set of historic results. THis is the helper function for gd_calc_ratings
 # where you can supply multiple teams. The arguments are detailed in other functions so I wont document.
 
-gd_calc_rating <- function (results, .team, current_date, xi, max_gd = 3, min_matches = 10) {
+gd_calc_rating <- function (results, .team, current_date, xi, max_gd = NA, min_matches = 10) {
   
-  gd_check_error_results(results)
+  expected_cols <- c("home_team", "away_team", "home_goals", "away_goals", "match_date")
+  
+  check_arg_results(results, expected_cols)
   
   if (length(.team) != 1) {
     
-    stop (glue("'.team' must be of length 1, not {length(team)}."))
+    stop (glue("'.team' must be of length 1, not {length(.team)}."))
     
   }
   
@@ -232,16 +242,11 @@ gd_calc_rating <- function (results, .team, current_date, xi, max_gd = 3, min_ma
     
   }
   
-  gd_check_error_current_date(current_date)
-  gd_check_error_xi(xi)
-  gd_check_error_max_gd(max_gd)
-  gd_check_error_min_matches(min_matches)
-  
+  check_arg_current_date(current_date)
+  check_arg_xi(xi)
+  gd_check_arg_max_gd(max_gd)
+  gd_check_arg_min_matches(min_matches)
 
-  
-
-  
-  
   team_results <- results %>% 
     mutate(gd = home_goals - away_goals) %>%
     select(match_date, home_team, away_team, gd) %>%
@@ -279,99 +284,6 @@ gd_calc_rating <- function (results, .team, current_date, xi, max_gd = 3, min_ma
   
 }
 
-
-
-gd_check_error_results <- function (results) {
-  
-  if (!is.data.frame(results)) {
-    
-    stop("'results' must be a tibble or data.frame")
-    
-  }
-  
-  expected_cols <- c("home_team", "away_team", "home_goals", "away_goals", "match_date")
-  
-  if (sum(expected_cols %in% colnames(results)) != length(expected_cols)) {
-    
-    stop (glue("'results' must have cols {glue_collapse(expected_cols, sep = ', ', last = ' or ')}."))
-    
-  }
-  
-  if (class(results$match_date) != "Date") {
-    
-    stop("'results' column 'match_date' must be of class Date.")
-    
-  }
-  
-  return(results)
-  
-}
-
-gd_check_error_current_date <- function (current_date) {
-  
-  if (length(current_date) != 1) {
-    
-    stop (glue("'current_date' must be of length 1, not {length(current_date)}."))
-    
-  }
-  
-  if (!is.Date(current_date)) {
-    
-    stop ("'current_date' must be of class Date.")
-    
-  }
-  
-}
-
-gd_check_error_xi <- function (xi) {
-  
-  if (length(xi) != 1) {
-    
-    stop (glue("'xi' must be of length 1, not {length(xi)}."))
-    
-  }
-  
-  if (!is.numeric(xi)) {
-    
-    stop ("'current_date' must be of class Date.")
-    
-  }  
-  
-  return(xi)
-  
-}
-
-
-gd_check_error_max_gd <- function (max_gd) {
-  
-  if (length(max_gd) != 1) {
-    
-    stop (glue("'max_gd' must be of length 1, not {length(max_gd)}."))
-    
-  }
-  
-  if (!is.numeric(max_gd)) {
-    
-    stop ("'max_gd' must be of class numeric.")
-    
-  }  
-  
-  if (max_gd < 1) {
-    
-    stop ("'max_gd' must be greater than or equal to 1.")
-    
-  }
-  
-  if (round_number(max_gd) != max_gd) {
-    
-    stop ("'max_gd' must be whole number.")
-    
-  }  
-
-  return(max_gd)
-  
-}
-
 # This function is the real work horse of the gd_optim_xi function. This is the input to Rs built in optimiser with the
 # aim of obtain the best value of xi for the job. All the arguments are detailed in other functions so I am not 
 # documenting as this wont be exported anyway.
@@ -383,4 +295,51 @@ gd_check_error_max_gd <- function (max_gd) {
   rps <- predicted %>% select(home_prob, draw_prob, away_prob) %>% calc_rps(observed)
   
   return(rps)
+}
+
+
+# This functions checks that the max_gd variable from the goal difference model is valid.
+
+gd_check_arg_max_gd <- function (x) {
+  
+  if (length(x) != 1) {
+    
+    stop (glue("'x' must be of length 1, not {length(x)}."))
+    
+  }
+  
+  if (!is.na(x)) {
+    
+    if (!is.numeric(x)) {
+      
+      stop ("'x' must be of class numeric.")
+      
+    }  
+    
+    if (x < 1) {
+      
+      stop ("'x' must be greater than or equal to 1.")
+      
+    }
+    
+    if (round_number(x) != x) {
+      
+      stop ("'x' must be whole number.")
+      
+    }  
+    
+  }
+
+  return(x)
+  
+}
+
+
+# Conveniently the exact same check is required so to be explicit about the check I will just set it equal to the same 
+# function because I don't think there is an evocative function name which covers both use cases.
+
+gd_check_arg_min_matches <- function(x) {
+  
+  gd_check_arg_max_gd(x)
+  
 }
