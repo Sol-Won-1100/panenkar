@@ -5,7 +5,7 @@ add_matches_played <- function(results){
   
   expected_cols <- c("home_team", "away_team", "season_id")
   
-  check_error_results(results, expected_cols)
+  check_arg_results(results, expected_cols)
   
   results_subset_with_matches_played <- results %>%
     pivot_longer(cols = home_team:away_team, names_to = "location", values_to = "team") %>%

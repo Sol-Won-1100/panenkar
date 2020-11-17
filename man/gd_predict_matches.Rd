@@ -13,7 +13,14 @@ gd_predict_matches(
   over_under_goals = 2.5
 )
 
-gd_calc_ratings(results, teams, current_date, xi, max_gd, min_matches)
+gd_calc_ratings(
+  results,
+  teams,
+  current_date,
+  xi,
+  max_gd = NA,
+  min_matches = 10
+)
 }
 \arguments{
 \item{historic_results}{results to be used for the fitting the model}
