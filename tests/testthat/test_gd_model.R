@@ -3,10 +3,6 @@ context("Goal Difference Model")
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
-# Delete
-library(panenkar)
-library(testthat)
-
 file_results <- here::here() %>% paste0("/tests/testthat/sco_prem_1994_1995.rds")
 
 results <- read_rds(file_results)

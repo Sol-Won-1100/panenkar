@@ -68,5 +68,7 @@ check_arg_current_date <- function (current_date) {
     
   }
   
+  return(current_date)
+  
 }
 

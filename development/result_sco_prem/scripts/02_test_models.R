@@ -9,63 +9,87 @@ library(panenkar)
 wd <- list()
 
 competition_id <- "sco_prem"
+subproject_path <- "development/results_sco_prem/"
 
-wd$wd <- here::here() %>% paste0("/development/full-time-result/", competition_id, "/")
-wd$data <- paste0(wd$wd, "data/")
-wd$output <- paste0(wd$wd, "output/")
+# Set paths
 
+wd <- list()
 
-# Get data and assign sets ---------------------------------------------------------------------------------------------
+wd$wd <- glue("{here::here()}/")
 
-results <- wd$data %>% paste0("results-main-sco_prem.rds") %>% read_rds() %>% mutate(match_date = ymd(match_date))
+wd$subproject <- glue("{wd$wd}{subproject_path}")
+wd$raw_data <- glue("{wd$subproject}raw_data/")
+wd$processed_data <- glue("{wd$subproject}processed_data/")
+wd$results <- glue("{wd$subproject}results/")
 
-training_set <- filter(results, season_id == min_season(season_id))
-test_set <- filter(results, season_id != min_season(season_id))
+# Get data and split into sets -----------------------------------------------------------------------------------------
 
-# Test set 1 will be used for optimizing the ensemble models and adding in the juice. his will be performed on seasons 
-# 0001 --> 0607.
+results <- "{wd$raw_data}results_main_{competition_id}.rds" %>%
+  glue() %>% 
+  read_rds() %>% 
+  mutate(match_date = ymd(match_date))
 
-# Test set 2 will be used for measuring accuracy and profitability out of sample. THis takes places from 0708 --> 1920.
+# The first set is for initializing models. 
+# The second set is for fitting models to and combining or what have you.
+# The third set is for testing the models for profitability.
+# The fourth set is for testing performance against the closing line. This is a subset to the third set because we dont
+# have as much closing line data.
 
-test_season_ids1 <- sequence_seasons("2000_2001", "2006_2007")
-test_season_ids2 <- sequence_seasons("2007_2008", "2019_2020")
+season_ids_initial_training <- sequence_seasons("1994_1995", "2000_2001")
+season_ids_model_fitting <-  sequence_seasons("2000_2001", "2006_2007")
+season_ids_test_main <- sequence_seasons("2007_2008", "2019_2020")
+# season_ids_test_closing <- sequence_seasons() # add in later
 
-test_set1_match_ids <- test_set %>% filter(season_id %in% test_season_ids1) %>% select(match_id) %>% unlist()
-test_set2_match_ids <- filter(test_set, season_id %in% test_season_ids2) %>% select(match_id) %>% unlist()
+select_match_ids <- function (results, season_ids) {
+  
+  results %>% filter(season_id %in% season_ids) %>% select(match_id) %>% unlist()
+  
+}
 
-min_matches_season <- 10
+match_ids_initial_training <- select_match_ids(results, season_ids_initial_training)
+match_ids_model_fitting <- select_match_ids(results, season_ids_model_fitting)
+match_ids_test_main <- select_match_ids(results, season_ids_test_main)
+# match_ids_test_closing <- select_match_ids(results, season_ids_test_closing) - add in later
 
-
-# Predict using poisson model ------------------------------------------------------------------------------------------
-
-## Commented out, already ran and outputted, quicker to output and read back in
-#
-# predicted_poisson <- poisson_simulate_matches(training_set, test_set, markets = "result")
-# 
-# wd$output %>% paste0("predicted_poisson.rds") %>% write_rds(predicted_poisson, file = .)
-
-predicted_poisson <- wd$output %>% paste0("predicted_poisson.rds") %>% read_rds()
-
-
-# Predict using zero inflated poisson model ----------------------------------------------------------------------------
-
-#
-# predicted_zero_inflated <- poisson_simulate_matches(training_set, test_set, markets = "result", zero_inflated = TRUE,
-#                                                     weight_cut_off = 0.02)
-# 
-# wd$output %>% paste0("predicted_zero_inflated.rds") %>% write_rds(predicted_zero_inflated, file = .)
-
-predicted_zero_inflated <- wd$output %>% paste0("predicted_zero_inflated.rds") %>% read_rds()
+set_inital_training <- filter(results, match_id %in% match_ids_initial_training)
+set_model_fitting <- filter(results, match_id %in% match_ids_model_fitting)
+set_test_main <- filter(results, match_id %in% match_ids_test_main_training)
 
 
-# Predict using basic probit model -------------------------------------------------------------------------------------
+## Fit models ----------------------------------------------------------------------------------------------------------
 
-# predicted_probit <- probit_simulate_matches(training_set, test_set)
-# 
-# wd$output %>% paste0("predicted_probit.rds") %>% write_rds(predicted_probit, file = .)
+## Poisson model
+
+predicted_poisson_model_fitting <- poisson_simulate_matches(set_inital_training, set_model_fitting, 
+                                                            markets = "result")
+
+predicted_poisson_test_main <- initial_training_set %>% 
+  bind_rows(model_fitting_set) %>%
+  poisson_simulate_matches(model_test_main_set, markets = "result")
+
+predicted_poisson_model_fitting %>% write_rds(file = glue("{wd$processed_data}predicted_poisson_model_fitting.rds"))
+predicted_poisson_test_main %>% write_rids(file = glue("{wd$processed_data}predicted_poisson_test_main.rds"))
 
 
-predicted_probit <- wd$output %>% paste0("predicted_probit.rds") %>% read_rds()
+## Probit model
+
+glue("{wd$processed_data}predicted_probit.rds") %>% write_rds(predicted_probit, file = .)
+
+
+predicted_probit_model_fitting <- probit_simulate_matches(set_inital_training, set_model_fitting)
+
+predicted_probit_test_main <- initial_training_set %>% 
+  bind_rows(model_fitting_set) %>%
+  probit_simulate_matches(model_test_main_set)
+
+predicted_probit_model_fitting %>% write_rds(file = glue("{wd$processed_data}predicted_probit_model_fitting.rds"))
+predicted_probit_test_main %>% write_rids(file = glue("{wd$processed_data}predicted_probit_test_main.rds"))
+
+
+## Goal difference model
+
+
+
 
 
 # Predict using gd rating model ----------------------------------------------------------------------------------------
@@ -108,8 +132,12 @@ wd$output %>% paste0("predicted_gd.rds") %>% write_rds(predicted_gd, file = .)
 predicted_gd <- wd$output %>% paste0("predicted_gd.rds") %>% read_rds()
 
 
+## BELOW HERE NEEDS TO GO TO NEW SCript
+
 
 # Ensemble optimized against actual outcomes ---------------------------------------------------------------------------
+
+min_matches_season <- 10
 
 # Matrices better for doing numerical operations
 

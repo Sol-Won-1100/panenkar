@@ -20,7 +20,8 @@ Depends:
   ggplot2,
   stringr,
   pscl,
-  glue
+  glue,
+  here,
+  testthat
 RoxygenNote: 7.1.1
-Suggests: 
-    testthat
+
