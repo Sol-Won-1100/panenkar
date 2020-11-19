@@ -125,7 +125,7 @@ gd_simulate_matches <- function (training_set, test_set, xi, max_gd = NA, min_ma
 #' @param historic_results results to be used for the fitting the model
 #' @param fit fitted probit model using clm, either results ~ match_rating or over_under_2_5 (etc) ~ match_rating
 #' @param match_rating defined as the home_rating - away_rating, where a teams rating is exp weighted average of 
-#' previous matches goal difference see \code{\link{gd_calc_ratings}}
+#' previous matches goal difference see \code{\link{gd_calc_rating}}
 #' @param market see \code{\link{gd_simulate_matches}}
 #' @param over_under_goals see \code{\link{gd_simulate_matches}}
 #' @return match probabilities

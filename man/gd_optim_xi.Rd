@@ -4,18 +4,18 @@
 \alias{gd_optim_xi}
 \title{Goal Difference Model Optimize Xi}
 \usage{
-gd_optim_xi(training_set, test_set, start_xi, max_gd, min_matches)
+gd_optim_xi(training_set, test_set, max_gd, min_matches)
 }
 \arguments{
 \item{training_set}{see \code{\link{gd_simulate_matches}}}
 
 \item{test_set}{see \code{\link{gd_simulate_matches}}}
 
-\item{start_xi}{starting value of xi to try}
-
 \item{max_gd}{see \code{\link{gd_simulate_matches}}}
 
 \item{min_matches}{see \code{\link{gd_simulate_matches}}}
+
+\item{start_xi}{starting value of xi to try}
 }
 \value{
 list, optim output including value and optimal parameters

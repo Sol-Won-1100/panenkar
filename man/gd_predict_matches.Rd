@@ -2,45 +2,25 @@
 % Please edit documentation in R/gd_model.R
 \name{gd_predict_matches}
 \alias{gd_predict_matches}
-\alias{gd_calc_ratings}
 \title{Goal Difference Model Predict Matches}
 \usage{
-gd_predict_matches(
-  historic_results,
-  fit,
-  match_rating,
-  market = "result",
-  over_under_goals = 2.5
-)
-
-gd_calc_ratings(
-  results,
-  teams,
-  current_date,
-  xi,
-  max_gd = NA,
-  min_matches = 10
-)
+gd_predict_matches(match_rating, fit, market = "result")
 }
 \arguments{
-\item{historic_results}{results to be used for the fitting the model}
+\item{match_rating}{defined as the home_rating - away_rating, where a teams rating is exp weighted average of 
+previous matches goal difference see \code{\link{gd_calc_rating}}}
 
 \item{fit}{fitted probit model using clm, either results ~ match_rating or over_under_2_5 (etc) ~ match_rating}
 
-\item{match_rating}{defined as the home_rating - away_rating, where a teams rating is exp weighted average of 
-previous matches goal difference}
-
 \item{market}{see \code{\link{gd_simulate_matches}}}
+
+\item{historic_results}{results to be used for the fitting the model}
 
 \item{over_under_goals}{see \code{\link{gd_simulate_matches}}}
 }
 \value{
 match probabilities
-
-match probabilities
 }
 \description{
-Predict matches using the basic goal difference rating model
-
 Predict matches using the basic goal difference rating model
 }

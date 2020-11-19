@@ -10,8 +10,7 @@ gd_simulate_matches(
   xi,
   max_gd = NA,
   min_matches = 10,
-  markets = c("result", "over_under"),
-  over_under_goals = 2.5
+  market = "result"
 )
 }
 \arguments{
