@@ -28,5 +28,18 @@ test_that("calc_rps works as expected", {
   expect_error(calc_rps(1:10, observed))
   expect_error(calc_rps(predicted, observed, "bat"))
   
-    
+  
+  # Row sums not equal to 0 is error
+  
+  predicted[1, ] <- c(0.5, 0.5, 0.2)
+  
+  expect_error(calc_rps(predicted, observed))
+  
+  # NAs are ignored 
+  
+  predicted[1, ] <- c(NA_real_, NA_real_, NA_real_)
+  
+  expect_equal(calc_rps(predicted, observed), 0.75625)
+
+  
 })

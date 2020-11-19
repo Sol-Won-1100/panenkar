@@ -88,7 +88,9 @@ calc_rps <- function(predicted, observed, check_predicted_row_sums = TRUE){
   
   if (check_predicted_row_sums == TRUE) {
     
-    predicted_row_sums <- predicted %>% rowSums() %>% round(3) # A tolerance of 0.001
+    predicted_row_sums <- predicted %>% rowSums() %>% round(3)# A tolerance of 0.001
+    predicted_row_sums <- predicted_row_sums[!is.na(predicted_row_sums)]
+    
     bad_predcited_row_sums <- predicted_row_sums[predicted_row_sums != 1]
     
     if (length(bad_predcited_row_sums) > 0) {
