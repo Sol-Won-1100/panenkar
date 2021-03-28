@@ -168,7 +168,7 @@ gd_fit <- function (historic_results, gd_fit_formula, method = "clm") {
   #   fit <- lm(gd_fit_formula, data = historic_results)
   #   
   
-  if (method = "gam") {
+  if (method == "gam") {
     
     fit <- mgcv::gam(gd_fit_formula, data = historic_results)
     
