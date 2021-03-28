@@ -4,7 +4,7 @@
 \alias{gd_predict_matches}
 \title{Goal Difference Model Predict Matches}
 \usage{
-gd_predict_matches(match_rating, fit, market = "result")
+gd_predict_matches(match_rating, fit)
 }
 \arguments{
 \item{match_rating}{defined as the home_rating - away_rating, where a teams rating is exp weighted average of 
@@ -12,9 +12,9 @@ previous matches goal difference see \code{\link{gd_calc_rating}}}
 
 \item{fit}{fitted probit model using clm, either results ~ match_rating or over_under_2_5 (etc) ~ match_rating}
 
-\item{market}{see \code{\link{gd_simulate_matches}}}
-
 \item{historic_results}{results to be used for the fitting the model}
+
+\item{market}{see \code{\link{gd_simulate_matches}}}
 
 \item{over_under_goals}{see \code{\link{gd_simulate_matches}}}
 }

@@ -2,12 +2,15 @@
 % Please edit documentation in R/row_max_min.R
 \name{row_max}
 \alias{row_max}
+\alias{row_min}
 \title{Row Maximum / Minimum}
 \usage{
 row_max(...)
+
+row_min(...)
 }
 \arguments{
-\item{...}{see row_numeric_function_below}
+\item{...}{columns of the tibble to compute the rowwise maximum on, must be numeric}
 }
 \description{
 Return the row maximum / minimum for columns ... in a tibble x using tidy evaluation
@@ -16,6 +19,7 @@ Return the row maximum / minimum for columns ... in a tibble x using tidy evalua
 passes the max function to row_numeric_function which applys the max functions to rows
 }
 \examples{
+
 
 library(tidyverse)
 

@@ -1,5 +1,10 @@
 
-# Add matches played  by each team for each season to standard results tibble.
+#' @title Add Matches Played
+#' @description Add matches played that season for each team
+#' @param results standard results tibble
+#' @return results tibble with home_matches_played_season and away_matches_played_season
+#' @rdname add_matches_played
+#' @export 
 
 add_matches_played <- function(results){
   

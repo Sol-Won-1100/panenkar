@@ -3,11 +3,12 @@
 #' 
 #' Return the row maximum / minimum for columns ... in a tibble x using tidy evaluation
 #' 
-#' @param ... see row_numeric_function_below
+#' @inheritParams row_numeric_function
 #' 
 #' @note passes the max function to row_numeric_function which applys the max functions to rows
 #' 
 #' @examples 
+#' 
 #' 
 #' library(tidyverse)
 #' 
@@ -18,8 +19,13 @@
 #' 
 #' row_max(x, x2, x3, new_col_name = "max_x2_x3")
 #' row_min(x, x2, x3, append_col = FALSE)
+#' @rdname row_max
+#' @export
 
 row_max <- function (...) row_numeric_function (..., f = "max")
+
+#' @rdname row_max
+
 row_min <- function (...) row_numeric_function (..., f = "min")
 
 #' Row Numeric Function

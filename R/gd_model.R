@@ -105,7 +105,7 @@ gd_simulate_matches <- function (training_set, test_set, xi, max_gd = NA, min_ma
     
     fixtures <- filter(test_set, match_date == match_dates[i]) 
     
-    store_predictions[[i]] <- gd_predict_matches(fixtures$match_rating, fit, market)
+    store_predictions[[i]] <- gd_predict_matches(fixtures$match_rating, fit)
 
     training_set <- bind_rows(training_set, fixtures)
 
@@ -132,7 +132,7 @@ gd_simulate_matches <- function (training_set, test_set, xi, max_gd = NA, min_ma
 #' @rdname gd_predict_matches
 #' @export 
 
-gd_predict_matches <- function(match_rating, fit, market = "result") {
+gd_predict_matches <- function(match_rating, fit) {
   
   probs <- tibble(match_rating = match_rating) %>%
     predict(fit, ., type = "prob")
@@ -145,9 +145,36 @@ gd_predict_matches <- function(match_rating, fit, market = "result") {
 }
 
 
-gd_fit <- function (historic_results, gd_fit_formula) {
+gd_fit <- function (historic_results, gd_fit_formula, method = "clm") {
   
-  ordinal::clm(gd_fit_formula, data = historic_results)
+  if (!is.character(method)) {
+    
+    stop("'method' must be of class character.")
+    
+  }
+  
+  if (length(method) != 1) {
+    
+    stop (glue("'method' must be of length 1 not {length(method)}."))
+    
+  }
+  
+  # if (method == "clm") {
+  #   
+  #   fit <- ordinal::clm(gd_fit_formula, data = historic_results)
+  #   
+  # } else if (method = "poly_spline") {
+  #   
+  #   fit <- lm(gd_fit_formula, data = historic_results)
+  #   
+  
+  if (method = "gam") {
+    
+    fit <- mgcv::gam(gd_fit_formula, data = historic_results)
+    
+  } 
+  
+  return(fit)
   
 }
 
@@ -325,7 +352,7 @@ gd_add_ratings <- function(results, xi, max_gd = NA, min_matches = 10) {
 
 .gd_optim_xi <- function (xi, training_set, test_set, max_gd = NA, min_matches = 10) {
   
-  predicted <- gd_simulate_matches(training_set, test_set, xi, max_gd, min_matches, market)
+  predicted <- gd_simulate_matches(training_set, test_set, xi, max_gd, min_matches, market = "result")
 
   observed <- test_set %>%
     mutate(result = factor(result, levels = c("home", "draw", "away"))) %>%

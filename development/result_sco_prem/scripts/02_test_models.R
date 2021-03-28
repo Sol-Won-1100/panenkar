@@ -1,6 +1,6 @@
 
-# TITLE:       Modelling Full Time Result Market for Scottish Premiership
-# DESCRIPTION: Analysis of betting strategy for this market
+# TITLE:       Test Models
+# DESCRIPTION: Test various models on result market of Scottish Premiership
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
@@ -56,9 +56,13 @@ set_model_fitting <- filter(results, match_id %in% match_ids_model_fitting)
 set_test_main <- filter(results, match_id %in% match_ids_test_main)
 
 
+set_inital_training %>% write_rds(file = glue("{wd$processed_data}set_inital_training.rds"))
+set_model_fitting %>% write_rds(file = glue("{wd$processed_data}set_model_fitting.rds"))
+set_test_main %>% write_rds(file = glue("{wd$processed_data}set_test_main.rds"))
+
 ## Fit models ----------------------------------------------------------------------------------------------------------
 
-## Poisson model ----
+## Poisson model -------------------------------------------------------------------------------------------------------
 
 predicted_poisson_model_fitting <- poisson_simulate_matches(set_inital_training, set_model_fitting, 
                                                             markets = "result")
@@ -71,7 +75,7 @@ predicted_poisson_model_fitting %>% write_rds(file = glue("{wd$processed_data}pr
 predicted_poisson_test_main %>% write_rds(file = glue("{wd$processed_data}predicted_poisson_test_main.rds"))
 
 
-## Probit model ----
+## Probit model --------------------------------------------------------------------------------------------------------
 
 predicted_probit_model_fitting <- probit_simulate_matches(set_inital_training, set_model_fitting)
 
@@ -83,109 +87,102 @@ predicted_probit_model_fitting %>% write_rds(file = glue("{wd$processed_data}pre
 predicted_probit_test_main %>% write_rds(file = glue("{wd$processed_data}predicted_probit_test_main.rds"))
 
 
-## Goal difference model ----
+## Goal difference model -----------------------------------------------------------------------------------------------
 
 # We firstly want to optimise xi. For speed we will do this only on the initial_training_set taking the first season
 # for initializing our model. We will leave max_gd = NA and optimize this separately once we have a good value for xi.
 
-set_optim_xi_initial <- filter(set_inital_training, season_id == min(season_id))
-set_optim_xi_test <- filter(set_inital_training, season_id != min(season_id))
+# set_optim_xi_initial <- filter(set_inital_training, season_id == min(season_id))
+# set_optim_xi_test <- filter(set_inital_training, season_id != min(season_id))
+# 
+# # Step 1 - optimize xi
+# 
+# optim_output <- gd_optim_xi(set_optim_xi_initial, set_optim_xi_test, max_gd = NA, min_matches = 10)
+# 
+# optim_output %>% write_rds(file = glue("{wd$results}gd_optim_xi_output.rds"))
+# 
+# 
+# # Add code to extract xi from optim_output
+# 
+# xi <- optim_output$minimum
+# 
+# max_gds <- 2:8
+# store_rps <- list()
+# 
+# # Calc rps for various trimmed goal differences - this should smooth out massive variance if a team collapses and gets
+# # rolled over
+# 
+# for (i in seq_along(1:length(max_gds))) {
+#   
+#   store_rps[[i]] <- .gd_optim_xi(xi, set_optim_xi_initial, set_optim_xi_test, max_gd = max_gds[i], min_matches = 10)
+#   
+# }
+# 
+# 
+# names(store_rps) <- max_gds
+# 
+# store_rps %>% write_rds(file = glue("{wd$results}gd_rps_for_various_max_gd.rds"))
+# 
+# df <- tibble(max_gd = c(max_gds, "no_restriction"), rps = c(unlist(store_rps), optim_output$objective)) 
+# 
+# p <- df %>%
+#   ggplot(aes(x = max_gd, y = rps, group = 1)) +
+#   geom_line() +
+#   ylim(min(df$rps), max(df$rps))
+# 
+# p 
+# 
+# max_gd_optim <- df %>% filter(rps == min(rps)) %>% select(max_gd) %>% unlist() %>% unname() %>% as.numeric()
+# 
+# gd_optim_paras <- list(xi = xi, max_gd = max_gd_optim)
+# 
+# 
+# write_rds(gd_optim_paras, file = glue("{wd$results}gd_optim_paras.rds"))
 
-# Step 1 - optimize xi
-
-optim_output <- gd_optim_xi(set_optim_xi_initial, set_optim_xi_test, max_gd = NA, min_matches = 10)
-
-optim_output %>% write_rds(file = glue("{wd$results}gd_optim_xi_output.rds"))
-
-
-# Add code to extract xi from optim_output
-
-xi <- optim_output$minimum
-
-max_gds <- 2:8
-store_rps <- list()
-
-# Calc rps for various trimmed goal differences - this should smooth out massive variance if a team collapses and gets
-# rolled over
-
-for (i in seq_along(1:length(max_gds))) {
-  
-  store_rps[[i]] <- .gd_optim_xi(xi, set_optim_xi_initial, set_optim_xi_test, max_gd = max_gds[i], min_matches = 10)
-  
-}
-
-
-names(store_rps) <- max_gds
-
-store_rps %>% write_rds(file = glue("{wd$results}gd_rps_for_various_max_gd.rds"))
-
-df <- tibble(max_gd = c(max_gds, "no_restriction"), rps = c(unlist(store_rps), optim_output$objective)) 
-
-p <- df %>%
-  ggplot(aes(x = max_gd, y = rps, group = 1)) +
-  geom_line() +
-  ylim(min(df$rps) * 0.99, max(df$rps) * 1.01)
-
-p # So no restrictions seems the way forward
-
-xi_optim <- xi
+gd_optim_paras <- "{wd$results}gd_optim_paras.rds" %>% glue() %>% read_rds()
 
 # Predict
 
-predicted_gd_model_fitting <- gd_simulate_matches(set_inital_training, set_model_fitting, xi = xi_optim,
-                                                  max_gd = NA, market = "result")
+predicted_gd_model_fitting <- gd_simulate_matches(set_inital_training, set_model_fitting, xi = gd_optim_paras$xi,
+                                                  max_gd = gd_optim_paras$max_gd, market = "result")
 
 predicted_gd_test_main <- set_inital_training %>% 
   bind_rows(set_model_fitting) %>% 
-  gd_simulate_matches(set_test_main, xi = xi_optim, max_gd = NA, market = "result")
+  gd_simulate_matches(set_test_main, xi = gd_optim_paras$xi, max_gd = gd_optim_paras$max_gd, market = "result")
 
 predicted_gd_model_fitting %>% write_rds(file = glue("{wd$processed_data}predicted_gd_model_fitting.rds"))
 predicted_gd_test_main %>% write_rds(file = glue("{wd$processed_data}predicted_gd_test_main.rds"))
 
+## Historic Odds Model -------------------------------------------------------------------------------------------------
 
 
-
-## BELOW HERE NEEDS TO GO TO NEW SCript
-
-
-# Ensemble optimized against actual outcomes ---------------------------------------------------------------------------
-
-min_matches_season <- 10
-
-# Matrices better for doing numerical operations
-
-predictions <- list(poisson = predicted_poisson_model_fitting, 
-                    probit = predicted_probit_model_fitting, 
-                    gd = predicted_gd_model_fitting) %>%
-  map(~filter(., match_id %in% test_set1_match_ids)) %>%
-  map(add_matches_played) %>%
-  map(~filter(., home_matches_played_season > min_matches_season, away_matches_played_season > min_matches_season)) %>%
-  map(~select(., all_of(c("home_prob", "draw_prob", "away_prob"))))
-
-num_matches <- nrow(predictions$poisson)
-
-predictions <- map(predictions, ~matrix(unlist(.), nrow = num_matches, ncol = 3))
-
-observed <- test_set %>%
-  filter(match_id %in% test_set1_match_ids) %>%
-  add_match_numbers_season() %>%
-  filter(home_match_number_season > min_matches_season, away_match_number_season > min_matches_season) %>%
-  mutate(home = if_else(result == "home", 1, 0),
-         draw = if_else(result == "draw", 1, 0),
-         away = if_else(result == "away", 1, 0)) %>%
-    select(home, draw, away) %>%
-  unlist() %>%
-  matrix(nrow = num_matches, ncol = 3)
-
-ensemble_weights <- calc_ensemble_weights(predictions, observed)
-
-ensemble <- build_ensemble(predictions, ensemble_weights)
+## ELO Model -----------------------------------------------------------------------------------------------------------
 
 
+## Machine Learning Models ---------------------------------------------------------------------------------------------
 
 
+## Juice ---------------------------------------------------------------------------------------------------------------
 
+# Models based on market probabilities
 
+juice_model_fitting <- set_model_fitting %>%
+  select(home_odds_max, draw_odds_max, away_odds_max) %>%
+  mutate(row_num = 1:n()) %>%
+  group_split(row_num, .keep = FALSE) %>%
+  map(unlist) %>%
+  map_dfr(remove_margin) %>%
+  set_colnames(c("home_prob", "draw_prob", "away_prob")) %>%
+  bind_cols(select(set_model_fitting, match_id, season_id, home_team, away_team))
 
+juice_test_main <- set_test_main %>%
+  select(home_odds_max, draw_odds_max, away_odds_max) %>%
+  mutate(row_num = 1:n()) %>%
+  group_split(row_num, .keep = FALSE) %>%
+  map(unlist) %>%
+  map_dfr(remove_margin) %>%
+  set_colnames(c("home_prob", "draw_prob", "away_prob")) %>%
+  bind_cols(select(set_test_main, match_id, season_id, home_team, away_team))
 
-
+write_rds(juice_model_fitting, file = glue("{wd$processed_data}juice_model_fitting.rds"))
+write_rds(juice_test_main, file = glue("{wd$processed_data}juice_test_main.rds"))
