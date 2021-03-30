@@ -1,7 +1,7 @@
 
 #' @title Remove Margin
 #' @description Remove the bookmakers margin from a set of odds
-#' @param x a vector, matrix, data.frame or tibble of decimal odds
+#' @param x a vector of decimal odds
 #' @param method one of 'proportional' or 'straight'. Default: 'proportional'
 #' @return OUTPUT_DESCRIPTION
 #' @details the 'proportional' method detailed here: https://www.football-data.co.uk/The_Wisdom_of_the_Crowd_updated.pdf 
@@ -30,31 +30,39 @@ remove_margin <- function(x, method = "proportional"){
     
   }
   
-  if (!is.data.frame(x) & !is.vector(x) & !is.matrix(x)) {
+  if (!is.vector(x) ) {
     
-    stop(glue("'x' must be a data.frame, tibble, matrix or vector."))
-    
-  }
-  
-  if (is.data.frame(x)) {
-    
-    x <- as.matrix(x, nrow = nrow(x), ncol = ncol(x))
+    stop(glue("'x' must be a vector."))
     
   }
-  
+
   if (!is.numeric(x)) {
     
     stop ("'x' must be numeric")
     
   }
+
+  if (length(x) == 1) {
+    if (is.na(x)) {
+      
+      stop ("'x' is NA")
+      
+    }
+  }
   
-  x_invalid <- unlist(x)
-  x_invalid <- x_invalid[!is.na(x_invalid)]
-  x_invalid <- x_invalid[x_valid <= 1]
+  x_invalid <- x[!is.na(x)]
   
-  if (length(x_invalid) > 0) {
+  if (length(x_invalid) != length(x)) {
     
-    stop("elements of 'x' must be > 1.")
+    stop("all elements of 'x' must not be NA")
+    
+  }
+  
+  x_lt1 <- x[x <= 1]
+  
+  if (length(x_lt1) != length(x)) {
+    
+    stop("elements of 'x' must be > 1")
     
   }
 
@@ -66,7 +74,9 @@ remove_margin <- function(x, method = "proportional"){
     
     prob_no_margin <- prob_with_margin / (1 + margin)
     
-  } else (method == "proportional") {
+  } else  {
+    
+    # Proportional method
     
     num_selections <- length(x)
     prob_no_margin <- (prob_with_margin * num_selections - margin) / num_selections

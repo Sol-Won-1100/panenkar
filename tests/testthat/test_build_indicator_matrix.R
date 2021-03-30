@@ -8,7 +8,7 @@ test_that("build_indicator_matrix works as expected", {
   set.seed(14)
   x <- factor(sample(outcomes, 5, TRUE), levels = outcomes)
   
-  expected_indicator_matrix <- matrix(c(0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0), nrow = 5, byrow = TRUE)
+  expected_indicator_matrix <- matrix(c(1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0), nrow = 5, byrow = TRUE)
   colnames(expected_indicator_matrix) <- outcomes
   
   expect_equal(build_indicator_matrix(x), expected_indicator_matrix)

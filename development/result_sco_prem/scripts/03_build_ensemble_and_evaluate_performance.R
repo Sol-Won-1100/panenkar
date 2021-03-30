@@ -11,6 +11,8 @@ wd <- list()
 competition_id <- "sco_prem"
 subproject_path <- "development/result_sco_prem/"
 
+wd$wd <- glue("{here::here()}/")
+
 wd$subproject <- glue("{wd$wd}{subproject_path}")
 wd$processed_data <- glue("{wd$subproject}processed_data/")
 
@@ -83,7 +85,6 @@ odds <- set_test_main_valid_matches %>%
   select(home_odds_max, draw_odds_max, away_odds_max) %>%
   as.matrix() 
 
-
 model_probs <- ensemble
 bookmakers_odds <- odds
 outcomes <- factor(set_test_main_valid_matches$result, c("home", "draw", "away"))
@@ -101,15 +102,18 @@ min_advantage <- 0.1
 
 # Test v closing odds --------------------------------------------------------------------------------------------------
 
-# Basically calculate the rps and mse for implied probs against my probs? No I think what I should do is get the odds
-# when I elected to bet and see how profitable my predictions would have been then.
+closing_odds <- set_test_main_valid_matches %>%
+  select(home_odds_sharp_closing, draw_odds_sharp_closing, away_odds_sharp_closing)
 
+x <- closing_odds %>%
+  
 
-
-
-
-
-
+  
+  
+  
+  tibble(model_probs) %>%
+  
+  filter(!is.na(home_odds_sharp_closing), )
 
 
 
