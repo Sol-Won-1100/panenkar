@@ -8,6 +8,7 @@ simulate_bets(
   probs,
   odds,
   outcomes,
+  closing_odds,
   min_advantage = 0.1,
   start_bank = 100,
   stake = 1,
@@ -22,6 +23,9 @@ simulate_bets(
 
 \item{outcomes}{Factor, the levels of which correspond to a column in probs and odds. They must all be ordered in the
 same way.}
+
+\item{closing_odds}{Tibble, data.frame or matrix of bookmakers odds. These are the odds at close and not necessarily
+bet on. These are used to check the closing line value (CLV) of the bets made.}
 
 \item{min_advantage}{Minimum advantage needed before a bet is placed. Default: 0.1.}
 

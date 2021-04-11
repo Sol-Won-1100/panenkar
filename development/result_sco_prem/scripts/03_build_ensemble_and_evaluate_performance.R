@@ -16,10 +16,6 @@ wd$wd <- glue("{here::here()}/")
 wd$subproject <- glue("{wd$wd}{subproject_path}")
 wd$processed_data <- glue("{wd$subproject}processed_data/")
 
-
-
-
-
 # Calculate ensemble weights -------------------------------------------------------------------------------------------
 
 set_model_fitting <- glue("{wd$processed_data}set_model_fitting.rds") %>% read_rds()
@@ -62,9 +58,6 @@ observed_model_fitting <- set_model_fitting %>%
 
 ensemble_weights <- calc_ensemble_weights(predictions, observed_model_fitting)
 
-
-
-
 # Test ensemble --------------------------------------------------------------------------------------------------------
 
 predictions <- list(poisson = predicted_poisson_test_main, 
@@ -85,42 +78,17 @@ odds <- set_test_main_valid_matches %>%
   select(home_odds_max, draw_odds_max, away_odds_max) %>%
   as.matrix() 
 
-model_probs <- ensemble
-bookmakers_odds <- odds
-outcomes <- factor(set_test_main_valid_matches$result, c("home", "draw", "away"))
-min_advantage <- 0.1
+outcomes <- factor(set_test_main_valid_matches$result, c("home", "draw", "away"))#
 
+closing_odds <- select(set_test_main_valid_matches, home_odds_sharp_closing, draw_odds_sharp_closing, 
+                       away_odds_sharp_closing)
 
-# AKA expected return on investment
+# A variety of tests
 
-
-
-
-
-
-
-
-# Test v closing odds --------------------------------------------------------------------------------------------------
-
-closing_odds <- set_test_main_valid_matches %>%
-  select(home_odds_sharp_closing, draw_odds_sharp_closing, away_odds_sharp_closing)
-
-x <- closing_odds %>%
-  
-
-  
-  
-  
-  tibble(model_probs) %>%
-  
-  filter(!is.na(home_odds_sharp_closing), )
-
-
-
-
-
-
-
-
+back_test_0_025 <- simulate_bets(ensemble, odds, outcomes, closing_odds, min_advantage = 0.025)
+back_test_0_05 <- simulate_bets(ensemble, odds, outcomes, closing_odds, min_advantage = 0.05)
+back_test_0_05_10 <- simulate_bets(ensemble, odds, outcomes, closing_odds, min_advantage = 0.05, max_odds = 10)
+back_test_0_1 <- simulate_bets(ensemble, odds, outcomes, closing_odds, min_advantage = 0.1)
+back_test_0_2 <- simulate_bets(ensemble, odds, outcomes, closing_odds, min_advantage = 0.2)
 
 

@@ -5,6 +5,8 @@
 #' @param odds Tibble, data.frame or matrix of bookmakers odds. Columns are outcomes, rows are matches.
 #' @param outcomes Factor, the levels of which correspond to a column in probs and odds. They must all be ordered in the
 #'                 same way.
+#' @param closing_odds Tibble, data.frame or matrix of bookmakers odds. These are the odds at close and not necessarily
+#'                     bet on. These are used to check the closing line value (CLV) of the bets made.
 #' @param min_advantage Minimum advantage needed before a bet is placed. Default: 0.1.
 #' @param start_bank Starting bankroll units. Default: 100.
 #' @param stake Stake to place per bet. Default: 1.
@@ -25,8 +27,8 @@
 #' @rdname simulate_bets
 #' @export 
 
-simulate_bets <- function (probs, odds, outcomes, min_advantage = 0.1, start_bank = 100, stake = 1, max_odds = 5,
-                           tolerance_digits = 3) {
+simulate_bets <- function (probs, odds, outcomes, closing_odds, min_advantage = 0.05, start_bank = 100, stake = 1, 
+                           max_odds = 5, tolerance_digits = 3) {
   
   ## Error handling
   
@@ -45,7 +47,6 @@ simulate_bets <- function (probs, odds, outcomes, min_advantage = 0.1, start_ban
   num_matches <- nrow(probs)
   num_outcomes <- ncol(probs)
   
-
   if (nrow(odds) != num_matches) {
   
     stop(glue("'probs' and 'odds' must have the same number of rows: {num_matches} != {nrow(odds)}."))
@@ -70,7 +71,7 @@ simulate_bets <- function (probs, odds, outcomes, min_advantage = 0.1, start_ban
     stop(glue("'probs' must have the same number of cols as the length of the levels of outcomes: {num_outcomes} != {length(levels(outcomes))}."))     
     
   }
-    
+  
   probs <- as.matrix(probs, nrow = num_matches, ncol = num_outcomes)
   odds <- as.matrix(odds, nrow = num_matches, ncol = num_outcomes)
   
@@ -122,38 +123,28 @@ simulate_bets <- function (probs, odds, outcomes, min_advantage = 0.1, start_ban
     
   }
   
- 
+  if (!is.numeric(max_odds)) {
+    
+    stop("'max_odds' must be numeric.")
+    
+  }
+  
+  if (length(max_odds) != 1) {
+    
+    stop(glue("'max_odds' must have length 1 not {length(min_advantage)}"))
+    
+  } 
+  
+  if (max_odds <= 1) {
+    
+    stop(glue("'max_odds' must be >= 1 not {max_odds}."))
+    
+  }
+  
   ## Simulate bets
   
-  advantage_matrix <- calc_advantage(probs, odds) #  true probs x bookmaker odds - 1 = advantage
-  
-  max_advantage_by_match <- row_max(as.data.frame(advantage_matrix), append_col = FALSE)
-  
-  bet_placement_matrix <- matrix(0, nrow = num_matches, ncol = num_outcomes)
-  
-  if (is.na(max_odds)) {
-    
-    max_odds <- max(odds, na.rm = TRUE)
-    
-  }
-  
-  for (i in seq_along(1:num_matches)) {
-    
-    for (j in seq_along(1:num_outcomes)) {
-      
-      advantage <- advantage_matrix[i, j]
-      
-      if (advantage == max_advantage_by_match[i] & advantage >= min_advantage & odds[i, j] < max_odds) {
-        
-        bet_placement_matrix[i, j] <- 1
-        
-      }
-      
-    }
-    
-  }
-  
-  stake_matrix <- bet_placement_matrix * stake
+  bet_placement_matrix <- build_bet_placement_matrix(probs, odds, min_advantage, max_odds)
+  stake_matrix <- bet_placement_matrix * stake # In the case where stake = 1, bet_placement_matrix = stake_matrix
   indicator_matrix <- build_indicator_matrix(outcomes) 
   win_matrix <- bet_placement_matrix * indicator_matrix
   
@@ -223,8 +214,116 @@ simulate_bets <- function (probs, odds, outcomes, min_advantage = 0.1, start_ban
   
   roi <- 100 * profit_loss / sum(stake_matrix, na.rm = TRUE)
   
-  p_rolling_bank <- rolling_stats %>%
-    ggplot(aes(x = match_num, y = bank)) +
+  ## Calculate closing line value
+  
+  # Remove margin spits out warnings but expecting these
+  
+  suppressWarnings(
+    closing_odds_df <- tibble(actual_odds_bet = rowSums(bet_placement_matrix * odds), 
+                              closing_odds = rowSums(bet_placement_matrix * (1 / remove_margin(closing_odds))),
+                              match_num = 1:num_matches)
+  )
+  
+  clv_breakdown <- closing_odds_df %>%
+    filter(!is.na(closing_odds), closing_odds != 0) %>%
+    mutate(clv_advantage  = actual_odds_bet / closing_odds - 1)
+    
+  clv_advantage <- mean(clv_breakdown$clv_advantage, na.rm = T)
+  
+  first_cl_position <- closing_odds_df %>%
+    filter(!is.na(closing_odds)) %>%
+    select(match_num) %>%
+    unlist() %>%
+    min()
+ 
+  rolling_stats_with_clv <- rolling_stats %>%
+    left_join(select(clv_breakdown, closing_odds, match_num), by = "match_num") %>%
+    mutate(bet_placed_closing = if_else(!is.na(closing_odds), 1, 0) * stake,
+           clv_bank = bank)
+  
+  
+  for (i in first_cl_position:(num_matches + 1)) {
+    
+    rolling_stats_with_clv[i, "clv_bank"] <- rolling_stats_with_clv[i - 1, "clv_bank"] + 
+                                             (rolling_stats_with_clv[i, "bet_placed_closing"] * clv_advantage)
+    
+  }
+  
+  
+  # The following tests the closing line value. This is based on this article
+  #
+  # https://www.pinnacle.com/en/betting-articles/Betting-Strategy/using-closing-line-to-test-betting-skill/7E6JWJM5YKEJUWKQ
+  # A basic summary is that we draw randomly and analyze the odds / closing odds ratio to determine if what we are 
+  # seeing is evidence of skill or simply random chance. If the ratio (1 - CLV advantage)
+  
+  combined_odds <- odds %>%
+    as.data.frame() %>%
+    tibble(as.data.frame(closing_odds_no_margin)) %>%
+    set_colnames(c("home_odds", "draw_odds", "away_odds", "home_closing", "draw_closing", "away_closing")) %>%
+    filter(across(everything(), ~ !is.na(.x)))
+  
+  odds_cols <- 1:num_outcomes
+  closing_cols <- seq(num_outcomes + 1, 2 * num_outcomes) 
+  
+  combined_odds <- list(select(combined_odds, all_of(odds_cols)), select(combined_odds, all_of(closing_cols)))
+  
+  suppressWarnings(
+    combined_odds[[2]] <- 1 / remove_margin(combined_odds[[2]])
+  )
+  
+  
+  sample_indices <- 1:nrow(combined_odds[[1]]) %>% 
+    sample(size = sum(num_bets_by_outcome), replace = TRUE) %>%
+    split(rep(1:num_outcomes, num_bets_by_outcome))
+  
+  odds_sample <- list()
+  
+  j <- 0
+  
+  for (i in seq_along(1:num_outcomes)) {
+    
+    sample_indices_outcome <- sample_indices[[as.character(i)]]
+    
+    if(length(sample_indices_outcome) > 0) {
+      
+      j <- j + 1
+      
+      odds_sample[[j]] <- tibble(odds = unlist(combined_odds[[1]][sample_indices_outcome, i]),
+                                 closing = unlist(combined_odds[[2]][sample_indices_outcome, i]))
+      
+    }
+    
+  }
+  
+  odds_sample <- odds_sample %>% 
+    bind_rows() %>%
+    mutate(ratio = odds / closing)
+  
+  ratio_mean_sample <- mean(odds_sample$ratio)
+  ratio_sd_sample <- sd(odds_sample$ratio)
+  ratio_standard_error <- ratio_sd_sample / (num_bets) ^ 0.5
+  
+  sd_bounds <- tribble(
+    ~p,   ~lower,                                       ~mean,              ~upper,
+    68,   ratio_mean_sample - ratio_standard_error,     ratio_mean_sample,  ratio_mean_sample + ratio_standard_error,
+    95,   ratio_mean_sample - 2 * ratio_standard_error, ratio_mean_sample,  ratio_mean_sample + 2 * ratio_standard_error,
+    99.7, ratio_mean_sample - 3 * ratio_standard_error, ratio_mean_sample,  ratio_mean_sample + 3 * ratio_standard_error
+  )
+
+  sd_bounds <- sd_bounds %>% 
+    mutate(actual_ratio = 1 + clv_advantage,
+           info = case_when(
+             actual_ratio >= lower & actual_ratio <= upper ~ glue("Ratio between bounds, no evidence of skill"),
+             actual_ratio >  upper ~ "Ratio above bounds, evidence of skill with prob >= {p}.",
+             actual_ratio <  lower ~ "Ratio below bounds, no evidence of skill",
+             TRUE ~ "Error"))
+  
+  ## Final outputs  
+  
+  p_rolling_bank <- rolling_stats_with_clv %>%
+    pivot_longer(cols = c("bank", "clv_bank"), names_to = "bank_type", values_to = "bank") %>%
+    mutate(bank_type = factor(bank_type, levels = c("clv_bank", "bank"))) %>%
+    ggplot(aes(x = match_num, y = bank, group = bank_type, colour = bank_type)) +
     geom_line() +
     theme_bw() +
     theme(panel.grid = element_blank(),
@@ -234,15 +333,14 @@ simulate_bets <- function (probs, odds, outcomes, min_advantage = 0.1, start_ban
           plot.title = element_text(size = 16, margin = margin(0, 0, 10, 0), face = "bold"),
           plot.subtitle = element_text(size = 12, margin = margin(0, 0, 10, 0)),
           panel.border = element_blank(),
-          axis.ticks = element_blank()) +
+          axis.ticks = element_blank(),
+          legend.position = "none") +
     scale_y_continuous(limits =  c(0, max(rolling_bank, na.rm = TRUE)), 
                        expand = c(0, max(rolling_bank, na.rm = TRUE) * 0.05)) +
-    labs(title = "Rolling Bank",
+    labs(title = "Rolling Bank with Expected Bank from CLV",
          x = "",
-         y = "")
-  
-  # p_odds_distribution <-
-  # p_odds_win_distribution <-
+         y = "") +
+    scale_color_manual(values=c("#FF0000", "#000000")) 
   
   
   betting_statistics <- list(profit_loss = profit_loss,
@@ -258,7 +356,9 @@ simulate_bets <- function (probs, odds, outcomes, min_advantage = 0.1, start_ban
                              num_wins_by_outcome = num_wins_by_outcome,
                              win_percentage_by_outcome = win_percentage_by_outcome,
                              average_odds_for_win = average_odds_for_win,
-                             p_rolling_bank = p_rolling_bank)
+                             p_rolling_bank = p_rolling_bank,
+                             clv_advantage = clv_advantage,
+                             clv_bounds = sd_bounds)
                           
   return(betting_statistics)
   
