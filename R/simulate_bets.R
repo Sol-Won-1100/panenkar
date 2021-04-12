@@ -123,23 +123,50 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds, min_advantage = 
     
   }
   
-  if (!is.numeric(max_odds)) {
+  if (min_advantage <= 0) {
     
-    stop("'max_odds' must be numeric.")
+    warning("'min_advantage' is <= 0, expected > 0 but have simulated anyway")
     
   }
   
   if (length(max_odds) != 1) {
     
-    stop(glue("'max_odds' must have length 1 not {length(min_advantage)}"))
+    stop(glue("'max_odds' must have length 1 not {length(max_odds)}"))
     
   } 
+  
+  if (!is.numeric(max_odds)) {
+    
+    stop("'max_odds' must be numeric.")
+    
+  }
+
   
   if (max_odds <= 1) {
     
     stop(glue("'max_odds' must be >= 1 not {max_odds}."))
     
   }
+  
+  if (length(start_bank) != 1) {
+    
+    stop(glue("'start_bank' must have length 1 not {length(max_odds)}"))
+    
+  } 
+  
+  if (!is.numeric(start_bank)) {
+    
+    stop("'start_bank' must be numeric.")
+    
+  }
+  
+  
+  if (start_bank <= 0) {
+    
+    warning(glue("start_bank' is <= 0, expected > 0 but have simulated anyway"))
+    
+  }
+  
   
   ## Simulate bets
   
@@ -244,8 +271,13 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds, min_advantage = 
   
   for (i in first_cl_position:(num_matches + 1)) {
     
-    rolling_stats_with_clv[i, "clv_bank"] <- rolling_stats_with_clv[i - 1, "clv_bank"] + 
-                                             (rolling_stats_with_clv[i, "bet_placed_closing"] * clv_advantage)
+    if (i > 1) {
+      
+      rolling_stats_with_clv[i, "clv_bank"] <- rolling_stats_with_clv[i - 1, "clv_bank"] + 
+        (rolling_stats_with_clv[i, "bet_placed_closing"] * clv_advantage)
+      
+      
+    }
     
   }
   
@@ -255,11 +287,12 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds, min_advantage = 
   # https://www.pinnacle.com/en/betting-articles/Betting-Strategy/using-closing-line-to-test-betting-skill/7E6JWJM5YKEJUWKQ
   # A basic summary is that we draw randomly and analyze the odds / closing odds ratio to determine if what we are 
   # seeing is evidence of skill or simply random chance. If the ratio (1 - CLV advantage)
+
+  colnames(closing_odds) <- paste0("closing_", colnames(odds))
   
   combined_odds <- odds %>%
     as.data.frame() %>%
-    tibble(as.data.frame(closing_odds_no_margin)) %>%
-    set_colnames(c("home_odds", "draw_odds", "away_odds", "home_closing", "draw_closing", "away_closing")) %>%
+    tibble(as.data.frame(closing_odds)) %>%
     filter(across(everything(), ~ !is.na(.x)))
   
   odds_cols <- 1:num_outcomes

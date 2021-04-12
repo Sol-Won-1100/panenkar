@@ -26,11 +26,11 @@ test_that("build_bet_placement_matrix works as expected", {
   expect_error(build_bet_placement_matrix(select(probs, -home), odds, min_advantage, max_odds))
   expect_error(build_bet_placement_matrix(probs, select(odds, -home), min_advantage, max_odds))
   expect_error(build_bet_placement_matrix(probs, odds, min_advantage = NA, max_odds))
-  expect_error(build_bet_placement_matrix(probs, odds, min_advantage, max_odds = NA))
+
   expect_error(build_bet_placement_matrix(probs, odds, c(min_advantage, min_advantage), max_odds))
   expect_error(build_bet_placement_matrix(probs, odds, min_advantage, c(max_odds, max_odds))) 
   expect_error(build_bet_placement_matrix(probs, odds, "cat", max_odds)) 
   expect_error(build_bet_placement_matrix(probs, odds, min_advantage, "dog")) 
-  expect_error(build_bet_placement_matrix(probs, odds, min_advantage, "dog")) 
+
     
 })

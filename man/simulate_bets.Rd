@@ -9,7 +9,7 @@ simulate_bets(
   odds,
   outcomes,
   closing_odds,
-  min_advantage = 0.1,
+  min_advantage = 0.05,
   start_bank = 100,
   stake = 1,
   max_odds = 5,

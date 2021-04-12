@@ -1,4 +1,14 @@
 
+#' @title Build Bet Placement Matrix
+#' @description Build a bet placement matrix
+#' @param probs Tibble, data.frame or matrix of estimated match probabilities. Columns are outcomes, rows are matches.
+#' @param odds Tibble, data.frame or matrix of bookmakers odds. Columns are outcomes, rows are matches.
+#' @param min_advantage Minimum advantage needed before a bet is placed. Default: 0.1.
+#' @param max_odds Maximum odds which a bet is placed it. You might limit odds to lower variance. Default: 5.
+#' @return A matrix the same size as the probs and odds matrices, composed of 1s and 0s indicating where a bet has been 
+#' placed
+#' @rdname build_bet_placement_matrix
+#' @export 
 
 build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
   
@@ -47,6 +57,25 @@ build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
   if (min_advantage >= 1 | min_advantage <= - 1) {
     
     stop(glue("'min_advantage' must be -1 < min_advantage < 1 not {min_advantage}."))
+    
+  }
+  
+  if (length(max_odds) != 1) {
+    
+    stop(glue("'max_odds' must have length 1 not {length(max_odds)}"))
+    
+  } 
+  
+  if (!is.numeric(max_odds)) {
+    
+    stop("'max_odds' must be numeric.")
+    
+  }
+  
+  
+  if (max_odds <= 1) {
+    
+    stop(glue("'max_odds' must be >= 1 not {max_odds}."))
     
   }
   
