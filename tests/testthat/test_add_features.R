@@ -45,12 +45,15 @@ test_that("add_empty_stadiums works correctly", {
   
   dummy_metadata <- dummy_metadata %>%
     mutate(start_date_covid_empty_stadium = NA_Date_,
-           match_ids_empty_stadium = '"sco_prem__20210512__Celtic__St Johnstone"; "sco_prem__20210512__Aberdeen__Hibernian"')
+           match_ids_empty_stadium = '"sco_prem__20210512__Celtic__St Johnstone"; "sco_prem__20210512__Aberdeen__Hibernian"',
+           match_ids_partial_empty_stadium = '"sco_prem__20210512__Celtic__St Johnstone"',
+    )
   
   results <- add_empty_stadiums(results_pre_add_empty, metadata_competitions = dummy_metadata)
   
   expect_equivalent(results$is_empty_stadium, c(rep(TRUE, 2), rep(FALSE, 8)))
-  # Add same checks for partials
+  expect_equivalent(results$is_partial_empty_stadium, c(rep(TRUE, 1), rep(FALSE, 9)))
+
   
 })
 

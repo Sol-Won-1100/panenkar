@@ -16,23 +16,25 @@ add_empty_stadiums <- function(results, metadata_competitions = load_metadata()$
   # Firstly extract where match ids when stadium was empty are manually specified
   
   match_ids_extracted_empty_stadium <- metadata_competitions %>%
-    filter(!is.na(match_ids_empty_stadium))
     select(match_ids_empty_stadium) %>%
+    filter(!is.na(match_ids_empty_stadium)) %>%
     unlist() %>%
     str_split(";") %>%
     unlist() %>%
     str_replace_all('\"', "") %>%
-    str_replace_all("\'", "")
+    str_replace_all("\'", "") %>%
+    str_trim()
 
   match_ids_extracted_partial_empty_stadium <- metadata_competitions %>%
-      filter(!is.na(match_ids_partial_empty_stadium))
       select(match_ids_partial_empty_stadium) %>%
+      filter(!is.na(match_ids_partial_empty_stadium)) %>%
       unlist() %>%
       str_split(";") %>%
       unlist() %>%
       str_replace_all('\"', "") %>%
-      str_replace_all("\'", "")
-  
+      str_replace_all("\'", "") %>%
+    str_trim()
+
   metadata_competitions %>%
     select(competition_id, start_date_covid_empty_stadium, end_date_covid_empty_stadium, match_ids_empty_stadium,
            start_date_covid_partial_empty_stadium, end_date_covid_partial_empty_stadium, 
