@@ -11,18 +11,33 @@
 #'
 #' @export
 
-add_empty_stadiums <- function(results) {
+add_empty_stadiums <- function(results, metadata_competitions = load_metadata()$competitions) {
   
-  if (check_arg_results(results) == FALSE ) {
-    
-    stop("'results' must be a results tibble")
-    
-  }
+  # Firstly extract where match ids when stadium was empty are manually specified
   
-  load_metadata()$competitions %>%
-    select(competition_id, start_date_covid_empty_stadium, end_date_covid_empty_stadium, 
-           start_date_covid_partial_empty_stadium, end_date_covid_partial_empty_stadium) %>%
-    left_join(results_both_leagues, ., by = "competition_id") %>%
+  match_ids_extracted_empty_stadium <- metadata_competitions %>%
+    filter(!is.na(match_ids_empty_stadium))
+    select(match_ids_empty_stadium) %>%
+    unlist() %>%
+    str_split(";") %>%
+    unlist() %>%
+    str_replace_all('\"', "") %>%
+    str_replace_all("\'", "")
+
+  match_ids_extracted_partial_empty_stadium <- metadata_competitions %>%
+      filter(!is.na(match_ids_partial_empty_stadium))
+      select(match_ids_partial_empty_stadium) %>%
+      unlist() %>%
+      str_split(";") %>%
+      unlist() %>%
+      str_replace_all('\"', "") %>%
+      str_replace_all("\'", "")
+  
+  metadata_competitions %>%
+    select(competition_id, start_date_covid_empty_stadium, end_date_covid_empty_stadium, match_ids_empty_stadium,
+           start_date_covid_partial_empty_stadium, end_date_covid_partial_empty_stadium, 
+           match_ids_partial_empty_stadium) %>%
+    left_join(results, ., by = "competition_id") %>%
     mutate(
       start_date_covid_empty_stadium = case_when(
         is.na(start_date_covid_empty_stadium) ~ max(match_date) + 1, 
@@ -42,12 +57,16 @@ add_empty_stadiums <- function(results) {
       
       is_empty_stadium = case_when(
         match_date >= start_date_covid_empty_stadium & match_date <= end_date_covid_empty_stadium ~ TRUE,
+        match_id %in% match_ids_extracted_empty_stadium ~ TRUE,
         TRUE ~ FALSE
       ),
       
       is_partial_empty_stadium = case_when(
         match_date >= start_date_covid_partial_empty_stadium & match_date <= end_date_covid_partial_empty_stadium ~ TRUE,
+        match_id %in% match_ids_extracted_partial_empty_stadium ~ TRUE,
         TRUE ~ FALSE
       )
-    )
+    ) %>%
+    select(-start_date_covid_empty_stadium, -end_date_covid_empty_stadium, -start_date_covid_partial_empty_stadium,
+           -end_date_covid_partial_empty_stadium, -match_ids_empty_stadium, -match_ids_partial_empty_stadium)
 }

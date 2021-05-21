@@ -8,6 +8,10 @@
 
 load_metadata <- function() {
   
+  wd <- list()
+
+  wd$metadata <- glue("{here::here()}/live_data/metadata/")
+  
   metadata <- list()
   
   metadata$competitions <- wd$metadata %>% 
