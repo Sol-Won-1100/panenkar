@@ -5,23 +5,9 @@
 # DESCRIPTION:
 #   Updating  www.football-data.co.uk Results and Odds Databases
 
-# Setup ------------------------------------------------------------------------
+# Setup ----------------------------------------------------------------------------------------------------------------
 
-library(innealan)
-library(magrittr) 
-library(tidyverse)
-library(panenkar)
-library(lubridate)
-
-wd <- list()
-
-wd$master <- "C:/Users/neil_/Desktop/Files/betting/football/"
-wd$wd <- here::here() %>% paste0("/")
-wd$data_clean <- paste0(wd$master, "data/clean/")
-wd$data_raw <- paste0(wd$master, "data/raw/")
-wd$data_raw_latest <- paste0(wd$master, "data/raw_latest/")
-
-# Download latest data ---------------------------------------------------------
+wd <- load_wd()
 
 # Clear the old data from the folder
 

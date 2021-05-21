@@ -3,19 +3,7 @@
 # DESCRIPTION: Downloading  www.football-data.co.uk football results and odds data. Saves csvs as is into 
 #              football-production/live-data/football_data_co_uk_historic_csvs/ for further manipulation
 
-# Setup ----------------------------------------------------------------------------------------------------------------
-
-wd <- list()
-
-wd$wd <- here::here() %>% paste0("/")
-wd$live_data <- paste0(wd$wd, "live_data/")
-wd$metadata <- paste0(wd$live_data, "metadata/")
-wd$football_data_co_uk_historic_csvs <- paste0(wd$live_data, "football_data_co_uk_historic_csvs/")
-
-# Get data -------------------------------------------------------------------------------------------------------------
-
-# Metadata
-
+wd <- load_wd()
 metadata <- load_metadata()
 
 competition_ids_main <- metadata$main_leagues$competition_id
@@ -28,6 +16,6 @@ season_ids_main <- map2(season_ids_main_start, season_ids_main_end, sequence_sea
 # Download
 
 list(competition_id = competition_ids_main, season_ids = season_ids_main) %>%
-  pwalk(get_from_football_data, path = wd$football_data_co_uk_historic_csvs)
+  pwalk(get_from_football_data, path = wd$live_data_football_data_co_uk_historic_csvs)
 
-walk(competition_ids_extra, get_from_football_data, path = wd$football_data_co_uk_historic_csvs)
+walk(competition_ids_extra, get_from_football_data, path = wd$live_data_football_data_co_uk_historic_csvs)

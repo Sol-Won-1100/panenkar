@@ -5,21 +5,9 @@
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-# library(panenkar)
-# library(readr)
-# library(magrittr)
-# library(purrr)
-# library(stringr)
+wd <- load_wd()
 
-# Set paths
-
-wd <- list()
-
-wd$wd <- here::here() %>% paste0("/")
-wd$live_data <- paste0(wd$wd, "live-data/")
-wd$football_data_co_uk_historic_csvs <- paste0(wd$live_data, "football-data-co-uk_historic-csvs/")
-
-files <- list.files(wd$football_data_co_uk_historic_csvs, full.names = TRUE)
+files <- list.files(wd$live_data_football_data_co_uk_historic_csvs, full.names = TRUE)
 
 files_main <- files %>% 
   str_detect(pattern = "_all", negate = TRUE) %>% 

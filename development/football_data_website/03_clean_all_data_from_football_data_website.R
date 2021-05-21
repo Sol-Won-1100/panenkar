@@ -5,18 +5,13 @@
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
-wd <- list()
-
-wd$wd <- here::here() %>% paste0("/")
-wd$live_data <- paste0(wd$wd, "live_data/")
-wd$metadata <- paste0(wd$live_data, "metadata/")
-wd$football_data_co_uk_historic_csvs <- paste0(wd$live_data, "football_data_co_uk_historic_csvs/")
+wd <- load_wd()
 
 # Clean and output file for database -----------------------------------------------------------------------------------
 
 ## Raw files
 
-files <- list.files(wd$football_data_co_uk_historic_csvs, full.names = TRUE)
+files <- list.files(wd$live_data_football_data_co_uk_historic_csvs, full.names = TRUE)
 
 files_main <- files %>% 
   str_detect(pattern = "_all", negate = TRUE) %>% 
@@ -40,6 +35,6 @@ results_both_leagues <- results_main_leagues %>%
 
 # It is quicker to write the dataset locally then push locally to the database than direct
 
-filename_database <- paste0(wd$live_data, "football_results.csv")
+filename_database <- glue("{wd$live_data}football_results.csv")
 
-write_csv(results_both_leagues, filename_database, col_names = FALSE)
+write_csv(results_both_leagues, filename_database)
