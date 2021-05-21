@@ -10,8 +10,13 @@
 #' 
 #' @return the match id
 
-create_match_id <- function (competition_id, match_date, home_team, away_team) {
+create_match_id <- Vectorize (function (competition_id, match_date, home_team, away_team) {
   
+  if (is.na(competition_id) | is.na(match_date) | is.na(home_team) | is.na(away_team)) {
+    
+    return(NA_character_)
+    
+  }
  
   if (is.Date(match_date) == FALSE) {
     
@@ -31,5 +36,5 @@ create_match_id <- function (competition_id, match_date, home_team, away_team) {
   
   return(match_id)
     
-}
+})
 

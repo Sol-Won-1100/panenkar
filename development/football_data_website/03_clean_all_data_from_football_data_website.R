@@ -5,22 +5,12 @@
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
-# Libraries
-
-library(panenkar)
-library(lubridate)
-library(magrittr) 
-library(tidyverse)
-library(DBI)
-
-# Set paths
-
 wd <- list()
 
 wd$wd <- here::here() %>% paste0("/")
-wd$live_data <- paste0(wd$wd, "live-data/")
+wd$live_data <- paste0(wd$wd, "live_data/")
 wd$metadata <- paste0(wd$live_data, "metadata/")
-wd$football_data_co_uk_historic_csvs <- paste0(wd$live_data, "football-data-co-uk_historic-csvs/")
+wd$football_data_co_uk_historic_csvs <- paste0(wd$live_data, "football_data_co_uk_historic_csvs/")
 
 # Clean and output file for database -----------------------------------------------------------------------------------
 
@@ -38,12 +28,18 @@ files_extra <- files %>%
 
 results_main_leagues <- map_dfr(files_main, create_db_table_results_main)
 results_extra_leagues <- map_dfr(files_extra, create_db_table_results_main,  data_type = "fd_extra")
-results_both_leagues <-  bind_rows(results_main_leagues, results_extra_leagues)
+
+
+# Add time independent features to dataset -----------------------------------------------------------------------------
+
+results_both_leagues <- results_main_leagues %>% 
+  bind_rows(results_extra_leagues) %>%
+  add_empty_stadiums()
 
 ## Push to results main
 
 # It is quicker to write the dataset locally then push locally to the database than direct
 
-file_db_setup <- paste0(wd$live_data, "football-database-setup.csv")
+filename_database <- paste0(wd$live_data, "football_results.csv")
 
-write_csv(results_both_leagues, file_db_setup, col_names = FALSE)
+write_csv(results_both_leagues, filename_database, col_names = FALSE)

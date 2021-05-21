@@ -4,10 +4,6 @@
 
 # Setup ----------------------------------------------------------------------------------------------------------------
 
-# Libraries
-
-library(panenkar)
-
 # Parameters
 
 .competition_id <- "sco_prem"
@@ -24,9 +20,11 @@ wd$raw_data <- glue("{wd$subproject}raw_data/")
 
 # Query database and save as rds file ----------------------------------------------------------------------------------
 
+# Drop the database setup - just use csv file in future but already outputted the rds
+
 season_ids <- sequence_seasons("1994_1995", "2018_2019")
 
-con <- connect_to_access_dbi(paste0(wd$live_data, "football_database.accdb"))
+con <- connect_to_access_dbi(paste0(wd$live_data, "football_database.csv"))
 
 results <- con %>%
   tbl("results_main") %>%
