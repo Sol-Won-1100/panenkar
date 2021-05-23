@@ -35,6 +35,6 @@ results_both_leagues <- results_main_leagues %>%
 
 # It is quicker to write the dataset locally then push locally to the database than direct
 
-filename_database <- glue("{wd$live_data}football_results.csv")
+filename_database <- glue("{wd$live_data}football_results.rds")
 
-write_csv(results_both_leagues, filename_database)
+write_rds(results_both_leagues, filename_database)

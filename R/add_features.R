@@ -72,3 +72,63 @@ add_empty_stadiums <- function(results, metadata_competitions = load_metadata()$
     select(-start_date_covid_empty_stadium, -end_date_covid_empty_stadium, -start_date_covid_partial_empty_stadium,
            -end_date_covid_partial_empty_stadium, -match_ids_empty_stadium, -match_ids_partial_empty_stadium)
 }
+
+
+
+#' @title Add Matches Played
+#' @description Add matches played that season for each team
+#' @param results standard results tibble
+#' @return results tibble with home_matches_played_season and away_matches_played_season
+#' @rdname add_matches_played
+#' @export 
+
+add_matches_played <- function(results, rows = NA){
+  
+  expected_cols <- c("match_id", "competition_id", "home_team", "away_team", "season_id", "match_date")
+  
+  check_arg_results(results, expected_cols)
+  
+  if (is.na(rows[1])) {
+    
+    rows <- 1:nrow(results)
+    
+  } else {
+    
+    # Add some checks of rows argument
+    
+  }
+  
+  results_to_add_matches <- results %>% 
+    slice(rows) %>% 
+    select(competition_id, season_id) %>% 
+    distinct() %>% 
+    semi_join(results, ., by = c("competition_id", "season_id"))
+ 
+  if (nrow(results_to_add_matches) > 0) {
+    
+    existing_results <- filter(results, !(match_id %in% results_to_add_matches$match_id))
+    
+    results_subset_with_matches_played <- results_to_add_matches %>%
+      pivot_longer(cols = home_team:away_team, names_to = "location", values_to = "team") %>%
+      group_by(season_id, team) %>%
+      mutate(matches_played_season = 1:n()) %>%
+      ungroup()
+    
+    results_subset_with_matches_played_home <- filter(results_subset_with_matches_played, location == "home_team")
+    results_subset_with_matches_played_away <- filter(results_subset_with_matches_played, location == "away_team") 
+    
+    results_with_matches_played_season <- results_to_add_matches %>%
+      mutate(home_matches_played_season = results_subset_with_matches_played_home$matches_played_season,
+             away_matches_played_season = results_subset_with_matches_played_away$matches_played_season)
+    
+    results_updated <- bind_rows(existing_results, results_to_add_matches)
+    
+    return(results_updated)
+    
+  } else {
+    
+    return(results)
+    
+  }
+
+}
