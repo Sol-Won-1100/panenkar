@@ -4,7 +4,10 @@
 \alias{add_empty_stadiums}
 \title{Add COVID empty stadiums}
 \usage{
-add_empty_stadiums(results)
+add_empty_stadiums(
+  results,
+  metadata_competitions = load_metadata()$competitions
+)
 }
 \arguments{
 \item{results}{results tibble}

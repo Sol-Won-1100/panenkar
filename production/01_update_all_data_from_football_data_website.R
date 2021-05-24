@@ -67,8 +67,9 @@ if(num_matches_new > 0){
   num_matches_previous <- nrow(database_results_previous)
   rows_to_add_features <- (num_matches_previous + 1):(num_matches_previous + num_matches_new)
   
-  # Here we add in the dependent features i.e. features which depend on previous entries, but only for the new rowws for
-  # performance reasons
+  # Here we add in the dependent features i.e. features which depend on previous entries, but only for the new rows for
+  # performance reasons. When adding in a new feature need to go back to the development folder and re-run the build for
+  # the whole database to create the new db with all the correct features.
   
   database_results <- database_results_previous %>% 
     bind_rows(results_new_unique) %>%

@@ -5,7 +5,7 @@ test_that("add_empty_stadiums works correctly", {
   
   # Test when dates are present things work correctly
   
-  dummy_metadata <- load_metadata()$competition %>% 
+  dummy_metadata <- panenkar::load_metadata()$competition %>% 
     select(competition_id, start_date_covid_empty_stadium:match_ids_partial_empty_stadium) %>%
     filter(competition_id == "sco_prem") %>%
     mutate(start_date_covid_empty_stadium = ymd("2021-05-12"),
@@ -59,7 +59,7 @@ test_that("add_empty_stadiums works correctly", {
 
 test_that("add_matches_played works as expected", {
   
-  file_results <- glue("{load_wd()$tests_testthat}/sco_prem_1994_1995.rds")
+  file_results <- glue::glue("{load_wd()$tests_testthat}/sco_prem_1994_1995.rds")
 
   results <- file_results %>% 
     read_rds() %>%
