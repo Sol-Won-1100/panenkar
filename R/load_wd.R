@@ -1,4 +1,11 @@
 
+#' Load Working Directory
+#' 
+#' Load in working directory paths
+#' 
+#' @return working directory list
+#' @export
+
 load_wd <- function () {
   
   ## Top Level ---------------------------------------------------------------------------------------------------------
