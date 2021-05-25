@@ -75,19 +75,12 @@ if(num_matches_new > 0){
     bind_rows(results_new_unique) %>%
     add_matches_played(rows = rows_to_add_features)
   
-  wd$live_data %>% paste0("database-results.rds") %>% write_rds(database_results_football_data, .)
+  wd$live_data %>% paste0("football_results.rds") %>% write_rds(database_results, .)
   
   # Copy over the latest files to raw directory
   
-  files_short <- list.files(wd$data_raw_latest)
-  files_to <- paste0(wd$data_raw_latest, files_short)
+  files_short <- list.files(wd$live_data_football_data_co_uk_latest_csvs)
+  files_to <- paste0(wd$live_data_football_data_co_uk_historic_csvs, files_short)
   
-  invisible(file.copy(files, files_to))
+  invisible(file.copy(files, files_to, overwrite = TRUE))
 }
-
-
-
-
-
-
-

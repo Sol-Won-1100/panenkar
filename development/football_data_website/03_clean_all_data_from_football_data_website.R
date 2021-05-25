@@ -29,7 +29,8 @@ results_extra_leagues <- map_dfr(files_extra, create_db_table_results_main,  dat
 
 results_both_leagues <- results_main_leagues %>% 
   bind_rows(results_extra_leagues) %>%
-  add_empty_stadiums()
+  add_empty_stadiums() %>%
+  add_matches_played()
 
 ## Push to results main
 
