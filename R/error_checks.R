@@ -4,7 +4,7 @@
 # Error checking function for checking results data set is in the correct format. THe exact columns required from
 # results varies depending on the model / use case. Pass these as a character vector through expected_cols.
 
-check_arg_results <- function (results, expected_cols) {
+check_arg_results <- function (results, expected_cols, min_rows = 1) {
   
   if (!is.data.frame(results)) {
     
@@ -27,6 +27,8 @@ check_arg_results <- function (results, expected_cols) {
     }
     
   }
+  
+  if (nrow(results) < min_rows) stop("results must have rows")
   
   return(results)
   

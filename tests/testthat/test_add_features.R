@@ -54,7 +54,6 @@ test_that("add_empty_stadiums works correctly", {
   expect_equivalent(results$is_empty_stadium, c(rep(TRUE, 2), rep(FALSE, 8)))
   expect_equivalent(results$is_partial_empty_stadium, c(rep(TRUE, 1), rep(FALSE, 9)))
 
-  
 })
 
 test_that("add_matches_played works as expected", {
@@ -68,6 +67,7 @@ test_that("add_matches_played works as expected", {
     add_matches_played()
   
   aberdeen_matches <- results %>% 
+    add_matches_played() %>%
     pivot_longer(cols = c("home_team", "away_team"), names_to = "location", values_to = "team") %>%
     mutate(matches_played = if_else(location == "home_team", home_matches_played_season, 
                                     away_matches_played_season)) %>%
@@ -86,6 +86,14 @@ test_that("add_matches_played works as expected", {
   
   expect_equivalent(matches_played_9394, 1:length(matches_played_9394))
   expect_equivalent(matches_played_9495, 1:length(matches_played_9495))
+  
+  results <- file_results %>% 
+    read_rds() %>%
+    mutate(match_date = ymd(match_date),
+           season_id = if_else(row_number() < 90, "1993_1994", season_id)) 
+  
+  expect_error(add_matches_played(results, rows = seq(nrow(results) - 5, nrow(results) + 1)))
+  
 })
 
 

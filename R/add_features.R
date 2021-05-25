@@ -94,41 +94,45 @@ add_matches_played <- function(results, rows = NA){
     
   } else {
     
-    # Add some checks of rows argument
+    # rows argument error handling
+    
+    negative_rows <- rows[rows <= 0]
+    
+    if (!is.numeric(rows)) stop("'rows' must be NA or numeric")
+    if (length(negative_rows) > 0) stop("rows must be positive integers")
+    if (!all.equal(round(rows), rows)) stop("rows must be positive integers")
+    if (length(rows) != unique(length(rows))) stop("'rows' elements must be unique")
+    if (max(rows) > nrow(results)) stop(glue("max rows ({max(rows)}) must be <= num rows results ({nrow(results)})"))
     
   }
+  
+  # If we are just taking all the rows i.e. rows = NA = 1:nrow(results), then this will filter out no rows
   
   results_to_add_matches <- results %>% 
     slice(rows) %>% 
     select(competition_id, season_id) %>% 
     distinct() %>% 
     semi_join(results, ., by = c("competition_id", "season_id"))
+  
+  results_subset_with_matches_played <- results_to_add_matches %>%
+    pivot_longer(cols = home_team:away_team, names_to = "location", values_to = "team") %>%
+    group_by(season_id, team) %>%
+    mutate(matches_played_season = 1:n()) %>%
+    ungroup()
+  
+  results_subset_with_matches_played_home <- filter(results_subset_with_matches_played, location == "home_team")
+  results_subset_with_matches_played_away <- filter(results_subset_with_matches_played, location == "away_team") 
+  
+  results_with_matches_played_season <- results_to_add_matches %>%
+    mutate(home_matches_played_season = results_subset_with_matches_played_home$matches_played_season,
+           away_matches_played_season = results_subset_with_matches_played_away$matches_played_season)
+  
+  # If we filtered out no rows then existing_results will have no rows
+  
+  existing_results <- filter(results, !(match_id %in% results_to_add_matches$match_id))
+  
+  results_updated <- bind_rows(existing_results, results_with_matches_played_season)  
+  
+  return(results_updated)
  
-  if (nrow(results_to_add_matches) > 0) {
-    
-    existing_results <- filter(results, !(match_id %in% results_to_add_matches$match_id))
-    
-    results_subset_with_matches_played <- results_to_add_matches %>%
-      pivot_longer(cols = home_team:away_team, names_to = "location", values_to = "team") %>%
-      group_by(season_id, team) %>%
-      mutate(matches_played_season = 1:n()) %>%
-      ungroup()
-    
-    results_subset_with_matches_played_home <- filter(results_subset_with_matches_played, location == "home_team")
-    results_subset_with_matches_played_away <- filter(results_subset_with_matches_played, location == "away_team") 
-    
-    results_with_matches_played_season <- results_to_add_matches %>%
-      mutate(home_matches_played_season = results_subset_with_matches_played_home$matches_played_season,
-             away_matches_played_season = results_subset_with_matches_played_away$matches_played_season)
-    
-    results_updated <- bind_rows(existing_results, results_to_add_matches)
-    
-    return(results_updated)
-    
-  } else {
-    
-    return(results)
-    
-  }
-
 }
