@@ -1,12 +1,14 @@
 
 context("Remove margin")
 
-dummy_probs <- runif(1, min = 0, max = 20) %>% ceiling() %>% runif()
-dummy_probs <- dummy_probs / 1
-dummy_probs <- dummy_probs * 1.025
-dummy_odds <- 1 / dummy_probs
+
 
 test_that("remove_margin_vector output sums to 1", {
+  
+  dummy_probs <- runif(1, min = 0, max = 20) %>% ceiling() %>% runif()
+  dummy_probs <- dummy_probs / sum(dummy_probs)
+  dummy_probs <- dummy_probs * 1.025
+  dummy_odds <- 1 / dummy_probs
   
   expect_equal(sum(remove_margin_vector(dummy_odds, method = "straight")), 1)
   expect_equal(sum(remove_margin_vector(dummy_odds, method = "proportional")), 1)
@@ -41,7 +43,7 @@ test_that("remove_margin_vector error handling works as expected", {
 test_that("remove_margin the wrapper round remove_margin_vector works as expected", {
   
   # Write a test which checks that a 2 row df or matrix remove_margin gives same output as remove_margin_vector pieced
-  # together
+  # together. Also want to be able to handle matrices, data.frames and tibbles no bother.
   
   
 })

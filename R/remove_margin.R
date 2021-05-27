@@ -12,9 +12,9 @@
 
 remove_margin <- function(x, method = "proportional") {
   
-  if(is.matrix(x)) {
-    
-    x <- as_tibble(x)
+ if(is.matrix(x)) {
+
+    x <- tibble(data.frame((x)))
     
   } 
   

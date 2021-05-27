@@ -2,18 +2,32 @@
 % Please edit documentation in R/simulate_bets.R
 \name{simulate_bets}
 \alias{simulate_bets}
+\alias{calc_clv_stats}
 \title{Simulate Bets}
 \usage{
 simulate_bets(
   probs,
   odds,
   outcomes,
-  closing_odds,
+  closing_odds = NA,
   min_advantage = 0.05,
   start_bank = 100,
   stake = 1,
   max_odds = 5,
   tolerance_digits = 3
+)
+
+calc_clv_stats(
+  odds,
+  outcomes,
+  closing_odds,
+  bet_placement_matrix,
+  num_matches,
+  rolling_stats,
+  stake,
+  bank,
+  num_outcomes,
+  num_bets
 )
 }
 \arguments{
@@ -41,9 +55,13 @@ not be flagged with they sum to 1+-0.001.}
 }
 \value{
 A list of betting statistics.
+
+Returns a list
 }
 \description{
 Simulate advantage bets
+
+Calculates CLV statistics for the simulate_bets function
 }
 \details{
 DETAILS
