@@ -32,5 +32,4 @@ test_that("build_bet_placement_matrix works as expected", {
   expect_error(build_bet_placement_matrix(probs, odds, "cat", max_odds)) 
   expect_error(build_bet_placement_matrix(probs, odds, min_advantage, "dog")) 
 
-    
 })

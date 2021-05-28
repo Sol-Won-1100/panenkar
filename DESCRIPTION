@@ -23,6 +23,6 @@ Depends:
   glue,
   here,
   testthat,
-  DBI
+  implied
 RoxygenNote: 7.1.1
 

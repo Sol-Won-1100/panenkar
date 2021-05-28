@@ -382,6 +382,12 @@ build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
     
   } 
   
+  if (is.na(max_odds)) {
+    
+    max_odds <- max(odds, na.rm = TRUE)
+    
+  }
+  
   if (!is.numeric(max_odds)) {
     
     stop("'max_odds' must be numeric.")
@@ -405,11 +411,7 @@ build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
   
   bet_placement_matrix <- matrix(0, nrow = num_matches, ncol = num_outcomes) # Initialize
   
-  if (is.na(max_odds)) {
-    
-    max_odds <- max(odds, na.rm = TRUE)
-    
-  }
+
   
   # We initialized the bet placement with 0s before. This goes through it and adds in a 1 to indicate a bet will be 
   # placed. The bet placement matrix is the same shape as the odds / closing odds / probs matrices. Bets are placed
@@ -527,16 +529,14 @@ calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, 
     as.data.frame() %>%
     tibble(as.data.frame(closing_odds)) %>%
     filter(across(everything(), ~ !is.na(.x)))
-  
+
   odds_cols <- 1:num_outcomes
   closing_cols <- seq(num_outcomes + 1, 2 * num_outcomes) 
   
   combined_odds <- list(select(combined_odds, all_of(odds_cols)), select(combined_odds, all_of(closing_cols)))
-  
-  suppressMessages(
-    combined_odds[[2]] <- 1 / remove_margin(combined_odds[[2]])
-  )
-  
+
+  combined_odds[[2]] <- 1 / remove_margin(combined_odds[[2]])
+
   
   sample_indices <- 1:nrow(combined_odds[[1]]) %>% 
     sample(size = sum(num_bets_by_outcome), replace = TRUE) %>%
@@ -560,7 +560,7 @@ calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, 
     }
     
   }
-  
+  print(odds_sample)
   odds_sample <- odds_sample %>% 
     bind_rows() %>%
     mutate(ratio = odds / closing)
@@ -593,41 +593,96 @@ calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, 
   
 }
 
+#' Create Dummy Simulation Data
+#' 
+#' Create fake data for betting simulation
+#' 
+#' @param num_matches number of matches to simulate
+#' @param num_outcomes how many outcomes can you create
+#' @param .seed 
 
 
-create_dummy_sim_data <- function (num_matches, num_outcomes, .seed) {
+create_dummy_sim_data <- function (num_matches, num_outcomes, .seed = NA) {
   
-  set.seed(.seed)
+  if (length(num_matches) > 1) stop ("'num_matches' must be of length 1")
+  if (!is.numeric(num_matches)) stop ("'num_matches' must be numeric")
+  if (is.na(num_matches)) stop ("'num_matches' must not be NA")
+  if (num_matches < 1) stop ("'num_matches' must be >= 1")
+  if (round(num_matches) != num_matches) stop ("'num_matches' must be a positive integer")
+  
+  if (length(num_outcomes) > 1) stop ("'num_outcomes' must be of length 1")
+  if (!is.numeric(num_outcomes)) stop ("'num_outcomes' must be numeric")
+  if (is.na(num_outcomes)) stop ("'num_outcomes' must not be NA")
+  if (num_outcomes < 1) stop ("'num_outcomes' must be >= 1")
+  if (round(num_outcomes) != num_outcomes) stop ("'num_outcomes' must be a positive integer")
+  
+  if (length(.seed) > 1) stop ("'.seed' must be of length 1")
+  if (!is.numeric(num_outcomes) & !is.na(num_outcomes)) stop ("'.seed' must be numeric or NA")
+  
+  if (is.na(.seed)) {
+    
+    random_probs <- runif(num_outcomes * num_matches, 0.2, 0.8) %>% matrix(nrow = num_matches, ncol = num_outcomes) 
+    
+  } else {
+    
+    set.seed(.seed)
+    random_probs <- runif(num_outcomes * num_matches, 0.2, 0.8) %>% matrix(nrow = num_matches, ncol = num_outcomes) 
+    
+  }
 
-  probs <- runif(num_outcomes * num_matches) %>% matrix(nrow = num_matches, ncol = num_outcomes)
+  # Just using this to benchmark them to 0, not actually interested in anything margin related at this stage.
 
-  odds <- probs %>% divide_by(1, .) %>% round(2)
- 
-  probs <- remove_margin(1 / probs)
+  actual_probs <- random_probs / 
+                  matrix(rep(c(rowSums(random_probs)), num_outcomes), byrow = FALSE, nrow = nrow(random_probs))
+
+  if (is.na(.seed)) {
+    
+    # We will then adjust the probabilities by this scaled amount
+    
+    bookmakers_margin <- runif(1, 0.01, 0.1)%>% matrix(nrow = num_matches, ncol = num_outcomes) 
+
+  } else {
+    
+    set.seed(.seed)
+    bookmakers_margin <- runif(1, 0.01, 0.1)%>% matrix(nrow = num_matches, ncol = num_outcomes) 
+    
+  }
   
-  set.seed(.seed)
-  probs_diff <- runif(num_outcomes * num_matches, -0.1, 0.05) %>%
-    matrix(nrow = num_matches, ncol = num_outcomes) %>%
-    as.data.frame() %>%
-    as_tibble()
+  implied_probs_with_margin <- actual_probs * (1 + bookmakers_margin)
+
+  if (is.na(.seed + 1)) {
+    
+    closing_adjustment <- num_outcomes %>% 
+      runif(0.01, 0.1)%>% 
+      matrix(nrow = num_matches, ncol = num_outcomes, byrow = TRUE) 
+    
+  } else {
+
+    closing_adjustment <- num_outcomes %>% 
+      runif(0.01, 0.1)%>% 
+      matrix(nrow = num_matches, ncol = num_outcomes, byrow = TRUE) 
+    
+  }
   
-  adjusted_probs <- probs + probs_diff
-  adjusted_probs[adjusted_probs < 0] <- 0.02
-  
-  set.seed(.seed)
-  closing_odds_diff <- runif(num_outcomes * num_matches, -0.025, 0.025) %>%
-    matrix(nrow = num_matches, ncol = num_outcomes) %>%
-    as.data.frame() %>%
-    as_tibble()
-  
-  closing_odds <- odds %>% divide_by(1, .) %>% add(closing_odds_diff) %>% divide_by(1, .) %>% round(2)
-  
+  implied_probs_closing_with_margin <- actual_probs * (1 + closing_adjustment)
+
   possible_outcomes <- paste0("o", 1:num_outcomes)
   
-  set.seed(.seed)
-  outcomes <- possible_outcomes %>% sample(size = num_matches, replace = TRUE) %>% factor(levels = possible_outcomes)
+  if (is.na(.seed)) {
+
+    outcomes <- possible_outcomes %>% sample(size = num_matches, replace = TRUE) %>% factor(levels = possible_outcomes)
+    
+  } else {
+    
+    set.seed(.seed)
+    outcomes <- possible_outcomes %>% sample(size = num_matches, replace = TRUE) %>% factor(levels = possible_outcomes)
+    
+  }
   
-  return(list(probs = probs, odds = odds, outcomes = outcomes, closing_odds = closing_odds))
+  return(list(estimated_probs = actual_probs, 
+              bookmakers_odds = 1 / implied_probs_with_margin, 
+              outcomes = outcomes, 
+              bookmakers_closing_odds = 1 / implied_probs_closing_with_margin))
   
 }
 

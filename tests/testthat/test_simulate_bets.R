@@ -1,10 +1,34 @@
 
 context("Simulate Bets")
 
+test_that("create_dummy_sim_data works as expected", {
+  
+  # Structure is fine
+  
+  expect_equivalent(create_dummy_sim_data(1, 2, .seed = 112), create_dummy_sim_data(1, 2, .seed = 112))
+  expect_equivalent(names(create_dummy_sim_data(12, 13)), 
+                    c("estimated_probs", "bookmakers_odds", "outcomes", "bookmakers_closing_odds"))
+
+  sim_inputs <- create_dummy_sim_data(100000, 3)
+
+  probs <- sim_inputs$estimated_probs
+  odds <- sim_inputs$bookmakers_odds
+  closing_odds <- sim_inputs$bookmakers_odds
+  
+  expect_equivalent(length(probs[probs > 1 | probs < 0]), 0)
+  expect_equivalent(length(odds[odds < 1]), 0)
+  expect_equivalent(length(closing_odds[closing_odds < 1]), 0)
+  expect_equivalent(is_same_size(probs, odds, closing_odds), TRUE)
+      
+})
+
+
 test_that("simulate_bets works as expected", {
 
-  sim_inputs1 <- create_dummy_sim_data(num_matches = 30, num_outcomes = 2, .seed = 12)
-  bet_simulation <- simulate_bets(sim_inputs1$probs, sim_inputs1$odds, sim_inputs1$outcomes, sim_inputs1$closing_odds)  
+  sim_inputs1 <- create_dummy_sim_data(num_matches = 100, num_outcomes = 3, .seed = 110)
+  bet_simulation <- simulate_bets(sim_inputs1$estimated_probs, 
+                                  sim_inputs1$bookmakers_odds, sim_inputs1$outcomes, 
+                                  sim_inputs1$bookmakers_closing_odds)  
   
   expected_output_names <- c("profit_loss", 
                              "roi", 

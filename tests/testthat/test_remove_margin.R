@@ -82,7 +82,8 @@ test_that("remove_margin works as expected", {
   
   odds_m[1, 1] <- NA
   
-  expect_equivalent(remove_margin(odds_m), matrix(c(rep(NA_real_, 3), remove_margin(odds2)), nrow = 2, byrow = TRUE))
+  expect_equivalent(remove_margin(odds_m), 
+                    matrix(c(rep(NA_real_, 3), remove_margin(odds2)), nrow = 2, byrow = TRUE))
   
   odds_m[2, 1] <- NA
   
@@ -107,5 +108,19 @@ test_that("remove_margin works as expected", {
   
   expect_equivalent(remove_margin(odds_tb, method = "straight"), 
                     tibble(as.data.frame(remove_margin(odds_m, method = "straight"))))
+  
+  problem_odds <- c(1.01, 10, 20, 40, 200)
+  
+  expect_equivalent(remove_margin(problem_odds, method = "straight"), 
+                    remove_margin(problem_odds, method = "proportional"))
+  
+  odds_some_problems <- matrix(c(2:6, problem_odds, 2:6), nrow = 3, byrow = TRUE)
+  
+  expected_result <- matrix(c(remove_margin(2:6), remove_margin(problem_odds, method = "straight"), remove_margin(2:6)), 
+                            nrow = 3, 
+                            byrow = TRUE)
+  
+  expect_equivalent(remove_margin(odds_some_problems), expected_result)
+
   
 })

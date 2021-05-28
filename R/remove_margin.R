@@ -59,33 +59,58 @@ remove_margin <- function(x, method = "proportional") {
   
   if (length(x[x <= 1 & !is.na(x)]) != 0) stop ("'x' values must be > 1")
   
-  xcol_names <- colnames(x)
-  
-  x <- t(as.matrix(x))
-  
-  prob_with_margin <- 1 / x
-  
-  margin_m <- prob_with_margin %>% 
-    colSums() %>% 
-    subtract(1) %>%
-    rep(each = nrow(x)) %>% 
-    matrix(nrow = nrow(x), byrow = FALSE)
-  
-  if (method == "straight") {
+  if (method == "proportional") {
     
-    prob_no_margin <- prob_with_margin / (1 + margin_m)
+    suppressWarnings(
+      implied_probs_output <- implied_probabilities(x, method = "wpo")
+    )
     
-  } else  {
+    problem_matches <- which(implied_probs_output$problematic == TRUE)
     
-    # Proportional method
+    prob_no_margin <- implied_probs_output$probabilities
     
-    num_selections <- nrow(x)
-    prob_no_margin <- (prob_with_margin * num_selections - margin_m) / num_selections
-    
-    
-  } 
+    if (length(problem_matches) > 0) {
+      
+      prob_no_margin[problem_matches,] <- implied_probabilities(x[problem_matches,])$probabilities
+      
+    }
 
-  prob_no_margin <- t(prob_no_margin)
+  } else {
+   
+    prob_no_margin <- implied_probabilities(x)$probabilities
+    
+  }
+  
+  
+  # 
+  # 
+  # 
+  # 
+  # x <- t(as.matrix(x))
+  # 
+  # prob_with_margin <- 1 / x
+  # 
+  # margin_m <- prob_with_margin %>% 
+  #   colSums() %>% 
+  #   subtract(1) %>%
+  #   rep(each = nrow(x)) %>% 
+  #   matrix(nrow = nrow(x), byrow = FALSE)
+  # 
+  # if (method == "straight") {
+  #   
+  #   prob_no_margin <- prob_with_margin / (1 + margin_m)
+  #   
+  # } else  {
+  #   
+  #   # Proportional method
+  #   
+  #   num_selections <- nrow(x)
+  #   prob_no_margin <- (prob_with_margin * num_selections - margin_m) / num_selections
+  #   
+  #   
+  # } 
+  # 
+  # prob_no_margin <- t(prob_no_margin)
   
   if (x_structure == "data.frame") {
 
