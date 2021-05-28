@@ -25,10 +25,38 @@ test_that("create_dummy_sim_data works as expected", {
 
 test_that("simulate_bets works as expected", {
 
-  sim_inputs1 <- create_dummy_sim_data(num_matches = 100, num_outcomes = 3, .seed = 110)
-  bet_simulation <- simulate_bets(sim_inputs1$estimated_probs, 
-                                  sim_inputs1$bookmakers_odds, sim_inputs1$outcomes, 
-                                  sim_inputs1$bookmakers_closing_odds)  
+  probs <- tribble(~V1,  ~V2,  ~V3,
+                             0.5,  0.3,  0.2,
+                             0.6, 0.24, 0.16,
+                             0.8,  0.1,  0.1,
+                             0.55, 0.27, 0.18,
+                             0.52, 0.23, 0.25)
+  
+  probs <- as.matrix(probs)
+  
+  odds <- tribble(~V1,  ~V2,  ~V3,
+                       1.9, 3, 6,
+                          1.6,  4.1,  6.2,
+                          1.3,    6,   11,
+                          1.7,    4,  5.5,
+                            2,  3.8,    4)
+
+  odds <- as.matrix(odds)
+  
+  closing_odds <- tribble(~V1,  ~V2,  ~V3,
+                       1.9, 3,       5.8,
+                       1.6,  4.1,    6.2,
+                       1.3,    6,     10,
+                       1.7,  4.1,    5.5,
+                       1.9,  3.8,      4
+                    )
+
+  closing_odds <- as.matrix(closing_odds)
+  
+  outcomes <- factor(c("away", "draw", "home", "draw", "home"), levels = c("home", "draw", "away"))
+  
+  
+  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0)  
   
   expected_output_names <- c("profit_loss", 
                              "roi", 

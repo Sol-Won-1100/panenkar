@@ -31,20 +31,11 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
                            max_odds = 5, tolerance_digits = 3) {
   
   ## Error handling
-  
-  if (!is.matrix(probs) & !is.data.frame(probs)) {
+
+  if (!is.matrix(probs)) stop ("'probs' must be a matrix")
+  if (!is.matrix(odds) & !is.data.frame(odds)) stop ("'odds' must be a matrix")
     
-    stop ("'probs' must be a matrix, data.frame or tibble.")
-    
-  }
-  
-  if (!is.matrix(odds) & !is.data.frame(odds)) {
-    
-    stop ("'odds' must be a matrix, data.frame or tibble.")
-    
-  }  
-  
-  if (!is.matrix(closing_odds) & !is.data.frame(closing_odds)) {
+  if (!is.matrix(closing_odds)) {
     
     if (!is.na(closing_odds[1])) {
       
@@ -56,7 +47,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
     if (!is_same_size(probs, odds)) {
       
-      stop(glue("'probs' and 'odds' must have the same number of rows and cols"))
+      stop("'probs' and 'odds' must have the same number of rows and cols")
       
     }
       
@@ -64,7 +55,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
     if (!is_same_size(probs, odds, closing_odds)) {
       
-      stop(glue("'probs', 'odds' and 'closing_odds'  must have the same number of rows and cols"))
+      stop("'probs', 'odds' and 'closing_odds'  must have the same number of rows and cols")
       
     }
     
@@ -90,9 +81,9 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   probs <- as.matrix(probs, nrow = num_matches, ncol = num_outcomes)
   odds <- as.matrix(odds, nrow = num_matches, ncol = num_outcomes)
   
-  colnames(probs) <- paste0(levels(outcomes), "_prob")
-  colnames(odds) <- paste0(levels(outcomes), "_odds")
-  
+  # colnames(probs) <- paste0(levels(outcomes), "_prob")
+  # colnames(odds) <- paste0(levels(outcomes), "_odds")
+  # 
   probs_sum_by_match <- probs %>% rowSums() %>% round(tolerance_digits) 
   probs_sum_by_match <- probs_sum_by_match[!is.na(probs_sum_by_match)]         
   probs_sum_by_match <- probs_sum_by_match[probs_sum_by_match != 1]                          
@@ -103,86 +94,27 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
   }
 
-  if (length(probs[probs < 0]) > 0) {
-    
-    stop("'probs' elements must be greater than or equal to 0.")
-    
-  }
+  if (length(probs[probs < 0]) > 0)  stop("'probs' elements must be greater than or equal to 0.")
+  if (length(probs[probs > 1]) > 0) stop("'probs' elements must be less than or equal to 1.")
+  if (length(odds[odds <= 1]) > 0) stop("'odds' elements must be greater than 1.")
+  if (!is.numeric(min_advantage)) stop("'min_advantage' must be numeric.")
+  if (length(min_advantage) != 1) stop(glue("'min_advantage' must have length 1 not {length(min_advantage)}"))
   
-  if (length(probs[probs > 1]) > 0) {
-    
-    stop("'probs' elements must be less than or equal to 1.")
-    
-  }
-  
-  if (length(odds[odds <= 1]) > 0) {
-    
-    stop("'odds' elements must be greater than 1.")
-    
-  }  
-
-
-  if (!is.numeric(min_advantage)) {
-    
-    stop("'min_advantage' must be numeric.")
-    
-  }
-  
-  if (length(min_advantage) != 1) {
-    
-    stop(glue("'min_advantage' must have length 1 not {length(min_advantage)}"))
-    
-  } 
-  
-  if (min_advantage >= 1 | min_advantage <= - 1) {
+  if (min_advantage >= 1 | min_advantage <= - 1){
     
     stop(glue("'min_advantage' must be -1 < min_advantage < 1 not {min_advantage}."))
     
   }
   
-  if (min_advantage <= 0) {
+  if (min_advantage <= 0)  warning("'min_advantage' is <= 0, expected > 0 but have simulated anyway")
+  if (length(max_odds) != 1) stop(glue("'max_odds' must have length 1 not {length(max_odds)}"))
+  if (is.na(max_odds)) max_odds <- max(odds, na.rm = TRUE) + 1
+  if (!is.numeric(max_odds)) stop("'max_odds' must be numeric.")
+  if (max_odds <= 1) stop(glue("'max_odds' must be >= 1 not {max_odds}."))
+  if (length(start_bank) != 1) stop(glue("'start_bank' must have length 1 not {length(max_odds)}"))
+  if (!is.numeric(start_bank)) stop("'start_bank' must be numeric.")
+  if (start_bank <= 0) warning("start_bank' is <= 0, expected > 0 but have simulated anyway")
     
-    warning("'min_advantage' is <= 0, expected > 0 but have simulated anyway")
-    
-  }
-  
-  if (length(max_odds) != 1) {
-    
-    stop(glue("'max_odds' must have length 1 not {length(max_odds)}"))
-    
-  } 
-  
-  if (!is.numeric(max_odds)) {
-    
-    stop("'max_odds' must be numeric.")
-    
-  }
-
-  
-  if (max_odds <= 1) {
-    
-    stop(glue("'max_odds' must be >= 1 not {max_odds}."))
-    
-  }
-  
-  if (length(start_bank) != 1) {
-    
-    stop(glue("'start_bank' must have length 1 not {length(max_odds)}"))
-    
-  } 
-  
-  if (!is.numeric(start_bank)) {
-    
-    stop("'start_bank' must be numeric.")
-    
-  }
-  
-  
-  if (start_bank <= 0) {
-    
-    warning(glue("start_bank' is <= 0, expected > 0 but have simulated anyway"))
-    
-  }
   
   ## Simulate bets
   
@@ -203,7 +135,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
   }
 
-  bet_percentage_by_outcome <- 100 * num_bets_by_outcome / num_matches
+  bet_percentage_by_outcome <- num_bets_by_outcome / num_matches
   
   # Dont want any zeroes or nas only the odds we actually bet on, by defintion they will be > 1
   
@@ -211,13 +143,13 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   average_odds_for_bet_all <- average_odds_for_bet_all[!is.na(average_odds_for_bet_all)] 
   average_odds_for_bet_all <- average_odds_for_bet_all[average_odds_for_bet_all != 0] 
   
-  average_odds_for_bet <- average_odds_for_bet_all %>% mean(na.rm = TRUE) %>% round(2)
+  average_odds_for_bet <- average_odds_for_bet_all %>% mean(na.rm = TRUE)
 
   distribution_odds_for_bet <- tibble(odds = average_odds_for_bet_all) %>% 
     group_by(odds) %>% 
     summarise(count = n(), .groups = "drop_last")
   
-  # Dont want any zeroes or nas only the odds we actually won on, by defintion they will be > 1
+  # Dont want any zeroes or NAs only the odds we actually won on, by defintion they will be > 1
   
   average_odds_for_win_all <- as.vector(win_matrix * odds)
   average_odds_for_win_all <- average_odds_for_win_all[!is.na(average_odds_for_win_all)] 
@@ -480,31 +412,29 @@ build_indicator_matrix <- function(x) {
 calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, num_matches, rolling_stats, stake, 
                             bank, num_outcomes, num_bets, num_bets_by_outcome) {
   
-  colnames(closing_odds) <- paste0(levels(outcomes), "_closing_odds")
+  # colnames(closing_odds) <- paste0(levels(outcomes), "_closing_odds")
   
   # 0 = no bet in this case, odds = bet at those odds
+
+  clv_df <- tibble(actual_odds_bet = rowSums(bet_placement_matrix * odds), 
+                   fair_closing_odds = rowSums(bet_placement_matrix * (1 / remove_margin(closing_odds))),
+                  match_num = 1:num_matches) %>%
+    filter(!is.na(fair_closing_odds), fair_closing_odds != 0) %>%
+    mutate(clv_advantage  = actual_odds_bet / fair_closing_odds - 1)
   
-  suppressMessages(
-    closing_odds_df <- tibble(actual_odds_bet = rowSums(bet_placement_matrix * odds), 
-                              closing_odds = rowSums(bet_placement_matrix * (1 / remove_margin(closing_odds))),
-                              match_num = 1:num_matches)
-  )
+  # Our expected advantage if we accept that the closing line odds, adjusted to be fair using the proportional 
+  # remove_margin method, are an accurate estimate.
   
-  clv_breakdown <- closing_odds_df %>%
-    filter(!is.na(closing_odds), closing_odds != 0) %>%
-    mutate(clv_advantage  = actual_odds_bet / closing_odds - 1)
+  clv_advantage <- mean(clv_df$clv_advantage, na.rm = T)
   
-  clv_advantage <- mean(clv_breakdown$clv_advantage, na.rm = T)
-  
-  first_cl_position <- closing_odds_df %>%
-    filter(!is.na(closing_odds)) %>%
+  first_cl_position <- clv_df %>%
     select(match_num) %>%
     unlist() %>%
     min()
   
   rolling_stats <- rolling_stats %>%
-    left_join(select(clv_breakdown, closing_odds, match_num), by = "match_num") %>%
-    mutate(bet_placed_closing = if_else(!is.na(closing_odds), 1, 0) * stake,
+    left_join(select(clv_df, fair_closing_odds, match_num), by = "match_num") %>%
+    mutate(bet_placed_closing = if_else(!is.na(fair_closing_odds), 1, 0) * stake,
            clv_bank = bank)
   
   for (i in first_cl_position:(num_matches + 1)) {
@@ -512,12 +442,14 @@ calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, 
     if (i > 1) {
       
       rolling_stats[i, "clv_bank"] <- rolling_stats[i - 1, "clv_bank"] + 
-        (rolling_stats[i, "bet_placed_closing"] * clv_advantage)
+                                      (rolling_stats[i, "bet_placed_closing"] * clv_advantage)
       
       
     }
     
   }
+  
+  rolling_stats$clv_bank <- round(rolling_stats$clv_bank, 2)
   
   # The following tests the closing line value. This is based on this article
   #
@@ -525,18 +457,21 @@ calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, 
   # A basic summary is that we draw randomly and analyze the odds / closing odds ratio to determine if what we are 
   # seeing is evidence of skill or simply random chance. If the ratio (1 - CLV advantage)
   
-  combined_odds <- odds %>%
-    as.data.frame() %>%
-    tibble(as.data.frame(closing_odds)) %>%
-    filter(across(everything(), ~ !is.na(.x)))
+  combined_odds <- cbind(odds, closing_odds)
+  
+  # Filter out rows where there are NAs. We are doing some classic stats testing here so any 1 match isnt important
+  
+  combined_odds <- combined_odds[complete.cases(combined_odds),] 
 
   odds_cols <- 1:num_outcomes
   closing_cols <- seq(num_outcomes + 1, 2 * num_outcomes) 
   
-  combined_odds <- list(select(combined_odds, all_of(odds_cols)), select(combined_odds, all_of(closing_cols)))
+  combined_odds <- list(combined_odds[, odds_cols], combined_odds[, closing_cols])
 
-  combined_odds[[2]] <- 1 / remove_margin(combined_odds[[2]])
+  combined_odds[[2]] <- 1 / remove_margin(combined_odds[[2]]) # Turn these into fair closing odds
 
+  # We want to sample from each outcome the same number of bets we actually placed for a good comparison rather than
+  # just randomly from each outcome because often one outcome might be generally favoured like home
   
   sample_indices <- 1:nrow(combined_odds[[1]]) %>% 
     sample(size = sum(num_bets_by_outcome), replace = TRUE) %>%
@@ -547,9 +482,9 @@ calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, 
   j <- 0
   
   for (i in seq_along(1:num_outcomes)) {
-    
+   
     sample_indices_outcome <- sample_indices[[as.character(i)]]
-    
+
     if(length(sample_indices_outcome) > 0) {
       
       j <- j + 1
@@ -560,7 +495,7 @@ calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, 
     }
     
   }
-  print(odds_sample)
+  
   odds_sample <- odds_sample %>% 
     bind_rows() %>%
     mutate(ratio = odds / closing)
