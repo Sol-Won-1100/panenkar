@@ -7,7 +7,7 @@
 remove_margin(x, method = "proportional")
 }
 \arguments{
-\item{x}{a vector, data.frame or matrix of decimal odds}
+\item{x}{a vector, data.frame, tibble or matrix of decimal odds}
 
 \item{method}{one of 'proportional' or 'straight'. Default: 'proportional'}
 }

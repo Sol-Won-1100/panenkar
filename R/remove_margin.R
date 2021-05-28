@@ -1,7 +1,7 @@
 
 #' @title Remove Margin
 #' @description Remove the bookmakers margin from a set of odds
-#' @param x a vector, data.frame or matrix of decimal odds
+#' @param x a vector, data.frame, tibble or matrix of decimal odds
 #' @param method one of 'proportional' or 'straight'. Default: 'proportional'
 #' @return OUTPUT_DESCRIPTION
 #' @details the 'proportional' method detailed here: https://www.football-data.co.uk/The_Wisdom_of_the_Crowd_updated.pdf 
@@ -11,49 +11,6 @@
 #' @export 
 
 remove_margin <- function(x, method = "proportional") {
-  
- if(is.matrix(x)) {
-
-    x <- tibble(data.frame((x)))
-    
-  } 
-  
-  
-  if (is.data.frame(x)) {
-
-    x_no_margin <- x %>% 
-      mutate(id = 1:n()) %>%
-      group_split(id, .keep = FALSE) %>%
-      map(unlist) %>%
-      map(remove_margin_vector, method) %>% 
-      map(matrix, nrow = 1) %>% 
-      map(as_tibble) %>% 
-      bind_rows() %>%
-      set_colnames(colnames(x))
-      
-  } else {
-    
-    x_no_margin <- remove_margin_vector(x, method)
-    
-  }
-  
-  return(x_no_margin)
-  
-}
-
-
-
-
-#' @title Remove Margin Vector
-#' @description Remove the bookmakers margin from a set of odds
-#' @param x a vector of decimal odds
-#' @param method one of 'proportional' or 'straight'. Default: 'proportional'
-#' @return OUTPUT_DESCRIPTION
-#' @details the 'proportional' method detailed here: https://www.football-data.co.uk/The_Wisdom_of_the_Crowd_updated.pdf 
-#' but can also be the 'straight' method. The  proportional method is thought to be superior, straight method is just 
-#' divide everything by the over round.
-
-remove_margin_vector <- function(x, method = "proportional"){
   
   if (!is.character(method)) {
     
@@ -73,61 +30,80 @@ remove_margin_vector <- function(x, method = "proportional"){
     
   }
   
-  if (!is.vector(x) ) {
+  if (!is_plain_vector(x) & !is_matrix_df_tibble(x)) {
     
-    stop(glue("'x' must be a vector."))
+    stop("x must be a plain vector, matrix, data.frame or tibble")
     
-  }
+  }  
   
-  if (length(x) == 1) {
-    if (is.na(x)) {
-      
-      warning("'x' is NA, returning NA")
-      return(NA_real_)
-      
-    }
-  }
+  x_structure <- class(x)[1]
 
-  if (!is.numeric(x)) {
-    
-    stop ("'x' must be numeric")
-    
-  }
-  
-  x_invalid <- x[!is.na(x)]
-  
-  if (length(x_invalid) != length(x)) {
-    
-    warning("'x' contains NAs, returning NAs")
-    return(rep(NA_real_, length(x)))
-    
-  }
-  
-  x_lt1 <- x[x <= 1]
+  if (is_plain_vector(x)) {
 
-  if (length(x_lt1) > 0) {
-    
-    warning("elements of 'x' must be > 1 return NAs")
-    return(rep(NA_real_, length(x)))
+    x <- matrix(x, nrow = 1)
+    x_structure <- "vector"
     
   }
 
+  if (ncol(x) < 2) stop ("'x' must have at least 2 outcomes")
+  
+  if (is.data.frame(x)) {
+    
+    x <- as.matrix(x)
+    
+  }
+  
+  if (!is.numeric(x)) stop ("'x' must be numeric")
+
+  cols_with_nas <- unique(which(is.na(x), arr.ind = TRUE)[, "col"])
+  
+  if (length(x[x <= 1 & !is.na(x)]) != 0) stop ("'x' values must be > 1")
+  
+  xcol_names <- colnames(x)
+  
+  x <- t(as.matrix(x))
+  
   prob_with_margin <- 1 / x
-    
-  margin <- sum(prob_with_margin) - 1
+  
+  margin_m <- prob_with_margin %>% 
+    colSums() %>% 
+    subtract(1) %>%
+    rep(each = nrow(x)) %>% 
+    matrix(nrow = nrow(x), byrow = FALSE)
   
   if (method == "straight") {
     
-    prob_no_margin <- prob_with_margin / (1 + margin)
+    prob_no_margin <- prob_with_margin / (1 + margin_m)
     
   } else  {
     
     # Proportional method
     
-    num_selections <- length(x)
-    prob_no_margin <- (prob_with_margin * num_selections - margin) / num_selections
+    num_selections <- nrow(x)
+    prob_no_margin <- (prob_with_margin * num_selections - margin_m) / num_selections
+    
     
   } 
+
+  prob_no_margin <- t(prob_no_margin)
   
+  if (x_structure == "data.frame") {
+
+    return(as.data.frame(prob_no_margin))
+    
+  } else if (x_structure == "tbl_df") {
+    
+    return(tibble(as.data.frame(prob_no_margin)))
+    
+  } else if (x_structure == "vector") {
+    
+    return(c(prob_no_margin))
+    
+  } else {
+    
+    return(prob_no_margin)
+    
+  }
+
 }
 

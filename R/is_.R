@@ -1,4 +1,30 @@
 
+#' Is Plain Vector
+#' 
+#' Tests if an object is an atomic vector and not a matrix, like output from c()
+#' 
+#' @param x object to test
+#' @return TRUE or FALSE
+#' @export
+
+is_plain_vector <- function (x) is_atomic(x) & !is.matrix(x)
+
+
+#' Is Matrix, Data Frame or Tibble
+#' 
+#' Tests if an object is an matrix, data.frame or tibble
+#' 
+#' @param x object to test
+#' @return TRUE or FALSE
+#' @export
+
+is_matrix_df_tibble <- function (x) {
+  
+  x_class <- class(x)[1]
+  x_class %in% c("matrix", "data.frame", "tbl_df")
+  
+}
+
 
 #' @title Is Same Size
 #' @description Test if matrices, data.frames or tibbles, or a combination of these have the same number of rows and 
@@ -24,18 +50,18 @@ is_same_size <- function(...) {
   if (length(params) < 2) stop ("must supply at least 2 items")
   
   is_ok_structures <- map_lgl(params, ~ !is.matrix(.x) | !is.data.frame(.x))
-
+  
   if (sum(is_ok_structures) != length(is_ok_structures)) stop ("arguments must be data.frames, matrices or tibbles")
   
   row_counts <- map_dbl(params, nrow)
   col_counts <- map_dbl(params, ncol)
-
+  
   if (length(unique(row_counts)) != 1) {
     
     return(FALSE)
     
   }
-
+  
   if (length(unique(col_counts)) != 1) {
     
     return(FALSE)
@@ -45,4 +71,3 @@ is_same_size <- function(...) {
   return(TRUE)
   
 } 
-

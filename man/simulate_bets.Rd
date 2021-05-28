@@ -27,7 +27,8 @@ calc_clv_stats(
   stake,
   bank,
   num_outcomes,
-  num_bets
+  num_bets,
+  num_bets_by_outcome
 )
 }
 \arguments{
