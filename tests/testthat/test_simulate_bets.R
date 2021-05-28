@@ -52,7 +52,8 @@ test_that("simulate_bets works as expected", {
                              "average_odds_for_win",
                              "p_rolling_bank",
                              "clv_advantage",
-                             "clv_bounds")
+                             "clv_bounds",
+                             "matches_sampled_for_clv_test")
   
   expect_equivalent(names(bet_simulation), expected_output_names) 
   
@@ -93,6 +94,18 @@ test_that("simulate_bets works as expected", {
   expect_equal(bet_simulation$clv_advantage, -0.01948734)
   
   bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001, .seed = 43)  
+  
+  # Lets take a scenario where its very simplistic but we have built a model and its unrealistically favorable.
+  # We would expect to see an insane ratio smashing all the stats tests out the park
+  
+  probs <- matrix(c(0.55, 0.45), nrow = 100, ncol = 2, byrow = TRUE)
+  odds <- matrix(c(5, 1.15), nrow = 100, ncol = 2,  byrow = TRUE)
+  closing_odds <- matrix(c(1.66, 2.2, 5.1, 1.14, 1.66, 2.2, 5.1, 1.14, 1.66, 2.2), nrow = 100, ncol = 2,  byrow = TRUE)
+  outcomes <- factor(c(rep("outcome_1", 70), rep("outcome_2", 30)), levels = c("outcome_1", "outcome_2"))
+  
+  
+  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001)  
+  
   
   
   # expect_equivalent(100 * bet_simulation$profit_loss / bet_simulation$num_bets, bet_simulation$roi)
