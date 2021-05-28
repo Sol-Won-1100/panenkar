@@ -1,36 +1,77 @@
 
 context("Simulate Bets")
 
-test_that("create_dummy_sim_data works as expected", {
-  
-  # Structure is fine
-  
-  expect_equivalent(create_dummy_sim_data(1, 2, .seed = 112), create_dummy_sim_data(1, 2, .seed = 112))
-  expect_equivalent(names(create_dummy_sim_data(12, 13)), 
-                    c("estimated_probs", "bookmakers_odds", "outcomes", "bookmakers_closing_odds"))
+# test_that("create_dummy_sim_data works as expected", {
+#   
+#   # Structure is fine
+#   
+#   expect_equivalent(create_dummy_sim_data(1, 2, .seed = 112), create_dummy_sim_data(1, 2, .seed = 112))
+#   expect_equivalent(names(create_dummy_sim_data(12, 13)), 
+#                     c("estimated_probs", "bookmakers_odds", "outcomes", "bookmakers_closing_odds"))
+# 
+#   sim_inputs <- create_dummy_sim_data(100000, 3)
+# 
+#   probs <- sim_inputs$estimated_probs
+#   odds <- sim_inputs$bookmakers_odds
+#   closing_odds <- sim_inputs$bookmakers_odds
+#   
+#   expect_equivalent(length(probs[probs > 1 | probs < 0]), 0)
+#   expect_equivalent(length(odds[odds < 1]), 0)
+#   expect_equivalent(length(closing_odds[closing_odds < 1]), 0)
+#   expect_equivalent(is_same_size(probs, odds, closing_odds), TRUE)
+#       
+# })
 
-  sim_inputs <- create_dummy_sim_data(100000, 3)
 
-  probs <- sim_inputs$estimated_probs
-  odds <- sim_inputs$bookmakers_odds
-  closing_odds <- sim_inputs$bookmakers_odds
+
+
+
+test_that("test_clv works as expected", { 
   
-  expect_equivalent(length(probs[probs > 1 | probs < 0]), 0)
-  expect_equivalent(length(odds[odds < 1]), 0)
-  expect_equivalent(length(closing_odds[closing_odds < 1]), 0)
-  expect_equivalent(is_same_size(probs, odds, closing_odds), TRUE)
-      
+  probs <- tribble(~V1,  ~V2,  ~V3,
+                   0.5,  0.3,  0.2,
+                   0.6, 0.24, 0.16,
+                   0.8,  0.1,  0.1,
+                   0.55, 0.27, 0.18,
+                   0.52, 0.23, 0.25)
+  
+  odds <- tribble(~V1,  ~V2,  ~V3,
+                  1.9,   3,    6,
+                  1.6,  4.1,  6.2,
+                  1.3,    6,   11,
+                  1.7,    4,  5.5,
+                  2,  3.8,    4)
+  
+  closing_odds <- tribble(~V1,  ~V2,  ~V3,
+                          1.9, 3,       5.8,
+                          1.6,  4.1,    6.2,
+                          1.3,    6,     10,
+                          1.7,  4.1,    5.5,
+                          1.9,  3.8,      4
+  )
+  
+  min_advantage <- 0
+  max_odds <- NA
+  
+  probs <- as.matrix(probs)
+  odds <- as.matrix(odds)
+  closing_odds <- as.matrix(closing_odds)
+  outcomes <- factor(c("away", "draw", "home", "draw", "home"), levels = c("home", "draw", "away"))
+  bet_placement_matrix <- build_bet_placement_matrix(probs, odds, min_advantage, NA)
+  
+  
 })
+
 
 
 test_that("simulate_bets works as expected", {
 
   probs <- tribble(~V1,  ~V2,  ~V3,
-                             0.5,  0.3,  0.2,
-                             0.6, 0.24, 0.16,
-                             0.8,  0.1,  0.1,
-                             0.55, 0.27, 0.18,
-                             0.52, 0.23, 0.25)
+                   0.5,  0.3,  0.2,
+                   0.6, 0.24, 0.16,
+                   0.8,  0.1,  0.1,
+                   0.55, 0.27, 0.18,
+                   0.52, 0.23, 0.25)
   
   probs <- as.matrix(probs)
   

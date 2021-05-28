@@ -43,7 +43,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
       
     }
     
-    calc_clv <- FALSE
+    closing_odds_supplied <- FALSE
     
     if (!is_same_size(probs, odds)) {
       
@@ -59,7 +59,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
       
     }
     
-    calc_clv <- TRUE
+    closing_odds_supplied <- TRUE
     
   }  
   
@@ -190,16 +190,12 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   roi <- 100 * profit_loss / sum(stake_matrix, na.rm = TRUE)
   
   ## Calculate closing line value
-  
-  # Remove margin spits out warnings but expecting these
-  
-  if (calc_clv == TRUE) {
+
+  if (closing_odds_supplied == TRUE) {
     
-    clv_outputs <- calc_clv_stats(odds, outcomes, closing_odds, bet_placement_matrix, num_matches, rolling_stats, stake, 
-                                  bank, num_outcomes, num_bets, num_bets_by_outcome)
-    
-    rolling_stats <- clv_outputs$rolling_stats
-    
+    clv_outputs <- test_clv(odds, outcomes, closing_odds, bet_placement_matrix, num_matches, rolling_stats, stake, 
+                            bank, num_outcomes, num_bets, num_bets_by_outcome)
+
   } else {
     
     clv_outputs <- list(bank_names = "bank", .title = "Rolling Bank", .colours = "#FF0000", clv_advantage = NA,
@@ -207,7 +203,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
   }
   
-  p_rolling_bank <- rolling_stats %>%
+  p_rolling_bank <- clv_outputs$rolling_stats%>%
     pivot_longer(cols = all_of(clv_outputs$bank_names), names_to = "bank_type", values_to = "bank") %>%
     mutate(bank_type = factor(bank_type, levels = clv_outputs$bank_names)) %>%
     ggplot(aes(x = match_num, y = bank, group = bank_type, colour = bank_type)) +
@@ -230,7 +226,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   
   return(list(profit_loss = profit_loss, 
               roi = roi, 
-              rolling = rolling_stats,
+              rolling = clv_outputs$rolling_stats,
               num_bets = num_bets,
               bet_percentage = bet_percentage,
               num_bets_by_outcome = num_bets_by_outcome,
@@ -403,22 +399,22 @@ build_indicator_matrix <- function(x) {
   
 }
 
+
+
 #' @title Calculate Closing Line Value Statistics
 #' @description Calculates CLV statistics for the simulate_bets function
 #' @return Returns a list
 #' @rdname simulate_bets
 #' @export 
 
-calc_clv_stats <- function (odds, outcomes, closing_odds, bet_placement_matrix, num_matches, rolling_stats, stake, 
+test_clv <- function (odds, outcomes, closing_odds, bet_placement_matrix, num_matches, rolling_stats, stake, 
                             bank, num_outcomes, num_bets, num_bets_by_outcome) {
   
   # colnames(closing_odds) <- paste0(levels(outcomes), "_closing_odds")
   
-  # 0 = no bet in this case, odds = bet at those odds
-
   clv_df <- tibble(actual_odds_bet = rowSums(bet_placement_matrix * odds), 
                    fair_closing_odds = rowSums(bet_placement_matrix * (1 / remove_margin(closing_odds))),
-                  match_num = 1:num_matches) %>%
+                   match_num = 1:num_matches) %>%
     filter(!is.na(fair_closing_odds), fair_closing_odds != 0) %>%
     mutate(clv_advantage  = actual_odds_bet / fair_closing_odds - 1)
   
