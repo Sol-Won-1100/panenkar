@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate_bets.R
 \name{simulate_bets}
 \alias{simulate_bets}
-\alias{calc_clv_stats}
+\alias{test_clv}
 \title{Simulate Bets}
 \usage{
 simulate_bets(
@@ -17,7 +17,7 @@ simulate_bets(
   tolerance_digits = 3
 )
 
-calc_clv_stats(
+test_clv(
   odds,
   outcomes,
   closing_odds,

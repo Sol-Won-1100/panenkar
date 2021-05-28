@@ -71,3 +71,23 @@ is_same_size <- function(...) {
   return(TRUE)
   
 } 
+
+#' @title Is NA Inf NaN
+#' @description Test if an object is NA, Inf, -Inf or NaN
+#' @param x object to test 
+#' @return Logical vector or matrix, data frames and tibbles will be converted to matrices
+#' @rdname is_na_inf_nan
+#' @export 
+
+is_na_inf_nan <- function (x) {
+  
+  if (is_list(x) & !is.data.frame(x)) return(FALSE)
+
+  if (class(x)[1] %in% c("data.frame", "tbl_df")) {
+
+    x <- as.matrix(x) 
+    
+  }
+  
+  is.na(x) | is.infinite(x) | is.nan(x)
+} 

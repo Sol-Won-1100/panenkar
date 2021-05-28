@@ -258,18 +258,9 @@ build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
   
   ## Error handling
   
-  if (!is.matrix(probs) & !is.data.frame(probs)) {
+  if (!is_matrix_df_tibble(probs)) stop ("'probs' must be a matrix, data.frame or tibble.")
+  if (!is_matrix_df_tibble(odds)) stop ("'odds' must be a matrix, data.frame or tibble.")
     
-    stop ("'probs' must be a matrix, data.frame or tibble.")
-    
-  }
-  
-  if (!is.matrix(odds) & !is.data.frame(odds)) {
-    
-    stop ("'odds' must be a matrix, data.frame or tibble.")
-    
-  } 
-  
   num_matches <- nrow(probs)
   num_outcomes <- ncol(probs)
   
@@ -312,7 +303,7 @@ build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
   
   if (is.na(max_odds)) {
     
-    max_odds <- max(odds, na.rm = TRUE)
+    max_odds <- max(odds, na.rm = TRUE) + 1
     
   }
   
@@ -334,26 +325,34 @@ build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
   # Advantage is true probs x bookmaker odds - 1 = advantage and we want to bet on the outcome with the maximum 
   # advantage
   
-  advantage_matrix <- calc_advantage(probs, odds) #  
+  advantage_matrix <- calc_advantage(probs, odds)  
   max_advantage_by_match <- row_max(as.data.frame(advantage_matrix), append_col = FALSE)
   
   bet_placement_matrix <- matrix(0, nrow = num_matches, ncol = num_outcomes) # Initialize
   
-
-  
   # We initialized the bet placement with 0s before. This goes through it and adds in a 1 to indicate a bet will be 
   # placed. The bet placement matrix is the same shape as the odds / closing odds / probs matrices. Bets are placed
   # when an advantage is detected. Where multiple outcomes have an advantage, the maximum advantage is picked.
-  
+
   for (i in seq_along(1:num_matches)) {
     
-    for (j in seq_along(1:num_outcomes)) {
+    odds_i_problem <- unlist(odds[1,])
+    odds_i_problem <- odds_i_problem[is_na_inf_nan(odds_i_problem)]
+    
+    probs_i_problem <- unlist(probs[1,])
+    probs_i_problem <- probs_i_problem[is_na_inf_nan(probs_i_problem)]
+    
+    if (!(length(odds_i_problem) > 0 | length(probs_i_problem) > 0)) {
       
-      advantage <- advantage_matrix[i, j]
-      
-      if (advantage == max_advantage_by_match[i] & advantage >= min_advantage & odds[i, j] < max_odds) {
+      for (j in seq_along(1:num_outcomes)) {
         
-        bet_placement_matrix[i, j] <- 1
+        advantage <- advantage_matrix[i, j]
+        
+        if (advantage == max_advantage_by_match[i] & advantage >= min_advantage & odds[i, j] < max_odds) {
+          
+          bet_placement_matrix[i, j] <- 1
+          
+        }
         
       }
       

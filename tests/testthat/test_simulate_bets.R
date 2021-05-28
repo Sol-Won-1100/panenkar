@@ -49,15 +49,12 @@ test_that("test_clv works as expected", {
                           1.7,  4.1,    5.5,
                           1.9,  3.8,      4
   )
-  
-  min_advantage <- 0
-  max_odds <- NA
-  
+
   probs <- as.matrix(probs)
   odds <- as.matrix(odds)
   closing_odds <- as.matrix(closing_odds)
   outcomes <- factor(c("away", "draw", "home", "draw", "home"), levels = c("home", "draw", "away"))
-  bet_placement_matrix <- build_bet_placement_matrix(probs, odds, min_advantage, NA)
+  bet_placement_matrix <- build_bet_placement_matrix(probs, odds, 0, NA)
   
   
 })

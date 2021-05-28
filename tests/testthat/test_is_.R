@@ -46,3 +46,36 @@ test_that("is_matrix_df_tibble works as expected", {
 
 })
 
+
+test_that("is_na_inf_nan works as expected", {
+  
+  expect_equivalent(is_na_inf_nan(NA), TRUE)
+  expect_equivalent(is_na_inf_nan(NA_real_), TRUE)
+  expect_equivalent(is_na_inf_nan(Inf), TRUE)
+  expect_equivalent(is_na_inf_nan(-Inf), TRUE)
+  expect_equivalent(is_na_inf_nan(NaN), TRUE)
+  
+  expect_equivalent(is_na_inf_nan(c(NA, Inf)), c(TRUE, TRUE))
+  expect_equivalent(is_na_inf_nan(c(NA, Inf, 12)), c(TRUE, TRUE, FALSE))
+  
+  m <- matrix(runif(9), nrow = 3, ncol = 3)
+  m[3, 2] <- NA
+  
+  m_expected <- matrix(FALSE, nrow = 3, ncol = 3)
+  m_expected[3, 2] <- TRUE
+  
+  expect_equivalent(is_na_inf_nan(m), m_expected)
+  
+  df <- as.data.frame(m)
+  
+  expect_equivalent(is_na_inf_nan(df), m_expected)
+  
+  tb <- as_tibble(df)
+
+  expect_equivalent(is_na_inf_nan(tb), m_expected)
+  
+  expect_equivalent(is_na_inf_nan(list(Inf)), FALSE)
+  
+  
+})
+
