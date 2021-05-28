@@ -1,66 +1,6 @@
 
 context("Simulate Bets")
 
-# test_that("create_dummy_sim_data works as expected", {
-#   
-#   # Structure is fine
-#   
-#   expect_equivalent(create_dummy_sim_data(1, 2, .seed = 112), create_dummy_sim_data(1, 2, .seed = 112))
-#   expect_equivalent(names(create_dummy_sim_data(12, 13)), 
-#                     c("estimated_probs", "bookmakers_odds", "outcomes", "bookmakers_closing_odds"))
-# 
-#   sim_inputs <- create_dummy_sim_data(100000, 3)
-# 
-#   probs <- sim_inputs$estimated_probs
-#   odds <- sim_inputs$bookmakers_odds
-#   closing_odds <- sim_inputs$bookmakers_odds
-#   
-#   expect_equivalent(length(probs[probs > 1 | probs < 0]), 0)
-#   expect_equivalent(length(odds[odds < 1]), 0)
-#   expect_equivalent(length(closing_odds[closing_odds < 1]), 0)
-#   expect_equivalent(is_same_size(probs, odds, closing_odds), TRUE)
-#       
-# })
-
-
-
-
-
-test_that("test_clv works as expected", { 
-  
-  probs <- tribble(~V1,  ~V2,  ~V3,
-                   0.5,  0.3,  0.2,
-                   0.6, 0.24, 0.16,
-                   0.8,  0.1,  0.1,
-                   0.55, 0.27, 0.18,
-                   0.52, 0.23, 0.25)
-  
-  odds <- tribble(~V1,  ~V2,  ~V3,
-                  1.9,   3,    6,
-                  1.6,  4.1,  6.2,
-                  1.3,    6,   11,
-                  1.7,    4,  5.5,
-                  2,  3.8,    4)
-  
-  closing_odds <- tribble(~V1,  ~V2,  ~V3,
-                          1.9, 3,       5.8,
-                          1.6,  4.1,    6.2,
-                          1.3,    6,     10,
-                          1.7,  4.1,    5.5,
-                          1.9,  3.8,      4
-  )
-
-  probs <- as.matrix(probs)
-  odds <- as.matrix(odds)
-  closing_odds <- as.matrix(closing_odds)
-  outcomes <- factor(c("away", "draw", "home", "draw", "home"), levels = c("home", "draw", "away"))
-  bet_placement_matrix <- build_bet_placement_matrix(probs, odds, 0, NA)
-  
-  
-})
-
-
-
 test_that("simulate_bets works as expected", {
 
   probs <- tribble(~V1,  ~V2,  ~V3,
@@ -93,8 +33,9 @@ test_that("simulate_bets works as expected", {
   
   outcomes <- factor(c("away", "draw", "home", "draw", "home"), levels = c("home", "draw", "away"))
   
+  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001)  
   
-  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0)  
+  # test list structure
   
   expected_output_names <- c("profit_loss", 
                              "roi", 
@@ -113,26 +54,59 @@ test_that("simulate_bets works as expected", {
                              "clv_advantage",
                              "clv_bounds")
   
-  expect_equivalent(names(bet_simulation), expected_output_names)
+  expect_equivalent(names(bet_simulation), expected_output_names) 
   
+  expect_equal(bet_simulation$profit_loss, 8)
+  expect_equal(bet_simulation$roi, bet_simulation$profit_loss / bet_simulation$num_bets)
+  
+  # Tests for the rolling object
+  
+  rolling <- bet_simulation$rolling
+  
+  expect_equal(nrow(rolling), length(outcomes) + 1)
+  expect_equivalent(rolling$match_num, 0:length(outcomes))
+  expect_equivalent(rolling$odds_of_selection, c(NA, 6, NA, 11, 4, 2))
+  expect_equivalent(rolling$odds_of_winner, c(NA, 6, 4.1, 1.3, 4, 2))
+  
+  expect_equivalent(rolling$profit_loss, c(NA, 5, 0, -1, 3, 1))
+  expect_equivalent(bet_simulation$profit_loss, unlist(rolling[6, "bank_after_match"] - rolling[1, "bank_after_match"]))
+ 
+  rolling$profit_loss[1] <- 100
+  
+  expect_equivalent(cumsum(rolling$profit_loss), rolling$bank_after_match)
+  
+  rolling$profit_loss[1] <- NA
+  
+  expect_equivalent(rolling$outcome[-1], as.character(outcomes))
+  expect_equivalent(rolling$bet_result[-1], c("win", "no_bet", "lose", "win", "win"))
+  
+  expect_equal(bet_simulation$num_bets, 4)
+  expect_equal(bet_simulation$bet_percentage, 0.8)
+  expect_equivalent(bet_simulation$num_bets_by_outcome, c(1, 1, 2))
+  expect_equivalent(bet_simulation$bet_percentage_by_outcome, c(1, 1, 2) / length(outcomes))
+  expect_equivalent(bet_simulation$average_odds_for_bet, mean(rolling$odds_of_selection, na.rm = TRUE))
+  expect_equal(bet_simulation$num_wins, 3)
+  expect_equal(bet_simulation$win_percentage, 3 / 4)
+  expect_equivalent(bet_simulation$average_odds_for_win, mean(c(6, 4, 2)))
   expect_equivalent(class(bet_simulation$p_rolling_bank), c("gg", "ggplot"))
   
-  expect_lt(bet_simulation$profit_loss, num_matches)
-  expect_gt(bet_simulation$profit_loss, -num_matches)
-  expect_gt(bet_simulation$profit_loss, -bet_simulation$num_bets)
+  expect_equal(bet_simulation$clv_advantage, -0.01948734)
   
-  expect_equivalent(100 * bet_simulation$profit_loss / bet_simulation$num_bets, bet_simulation$roi)
-  expect_equivalent(nrow(bet_simulation$rolling) - 1, num_matches)
-  expect_equivalent(sum(bet_simulation$num_bets_by_outcome), bet_simulation$num_bets)
-  expect_equivalent(sum(bet_simulation$num_wins_by_outcome), bet_simulation$num_wins)
+  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001, .seed = 43)  
   
-  for (i in seq_along(1:num_outcomes)) {
-    
-    expect_equal(100 * bet_simulation$num_wins_by_outcome[i] / bet_simulation$num_bets_by_outcome[i], 
-                 bet_simulation$win_percentage_by_outcome[i])
-    
-  }
   
+  # expect_equivalent(100 * bet_simulation$profit_loss / bet_simulation$num_bets, bet_simulation$roi)
+  # expect_equivalent(nrow(bet_simulation$rolling) - 1, num_matches)
+  # expect_equivalent(sum(bet_simulation$num_bets_by_outcome), bet_simulation$num_bets)
+  # expect_equivalent(sum(bet_simulation$num_wins_by_outcome), bet_simulation$num_wins)
+  # 
+  # for (i in seq_along(1:num_outcomes)) {
+  #   
+  #   expect_equal(100 * bet_simulation$num_wins_by_outcome[i] / bet_simulation$num_bets_by_outcome[i], 
+  #                bet_simulation$win_percentage_by_outcome[i])
+  #   
+  # }
+  # 
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = c(0.05, 0.05)))
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = data.frame(c(0.05, 0.05))))
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = matrix(c(0.05, 0.05))))
