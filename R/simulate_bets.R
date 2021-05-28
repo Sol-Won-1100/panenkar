@@ -408,7 +408,7 @@ build_indicator_matrix <- function(x) {
 #' @export 
 
 test_clv <- function (odds, outcomes, closing_odds, bet_placement_matrix, num_matches, rolling_stats, stake, 
-                            bank, num_outcomes, num_bets, num_bets_by_outcome) {
+                      bank, num_outcomes, num_bets, num_bets_by_outcome) {
   
   # colnames(closing_odds) <- paste0(levels(outcomes), "_closing_odds")
   
