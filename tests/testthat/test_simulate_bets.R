@@ -92,34 +92,73 @@ test_that("simulate_bets works as expected", {
   expect_equivalent(class(bet_simulation$p_rolling_bank), c("gg", "ggplot"))
   
   expect_equal(bet_simulation$clv_advantage, -0.01948734)
-  
-  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001, .seed = 43)  
+    
   
   # Lets take a scenario where its very simplistic but we have built a model and its unrealistically favorable.
   # We would expect to see an insane ratio smashing all the stats tests out the park
-  
-  probs <- matrix(c(0.55, 0.45), nrow = 100, ncol = 2, byrow = TRUE)
-  odds <- matrix(c(5, 1.15), nrow = 100, ncol = 2,  byrow = TRUE)
-  closing_odds <- matrix(c(1.66, 2.2, 5.1, 1.14, 1.66, 2.2, 5.1, 1.14, 1.66, 2.2), nrow = 100, ncol = 2,  byrow = TRUE)
-  outcomes <- factor(c(rep("outcome_1", 70), rep("outcome_2", 30)), levels = c("outcome_1", "outcome_2"))
-  
+
+  probs <- bet_sim_data %>% select(home_prob:away_prob) %>% as.matrix()
+  odds <- bet_sim_data %>% select(home_odds:away_odds) %>% as.matrix()
+  closing_odds <- bet_sim_data %>% select(home_closing_odds:away_closing_odds) %>% as.matrix()
+  outcomes <- bet_sim_data$outcome %>% factor(levels = c("home", "draw", "away"))
   
   bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001)  
   
+  # Near zero probability that this fails incase it ever falls down!
+  
+  expect_equivalent(bet_simulation$clv_bound$info, rep("Ratio above bounds, evidence of skill", 3))
+  
+  # Test args can be dfs
+  
+  bet_sim_probs_df <- simulate_bets(as.data.frame(probs), odds, outcomes, closing_odds, min_advantage = 0.00001)
+  bet_sim_odds_df <- simulate_bets(probs, as.data.frame(odds), outcomes, closing_odds, min_advantage = 0.00001)
+  bet_sim_closing_df <- simulate_bets(probs, odds, outcomes, as_tibble(as.data.frame(closing_odds)), 
+                                      min_advantage = 0.00001)
+  
+  expect_equivalent(bet_sim_probs_df$rolling, bet_simulation$rolling)
+  expect_equivalent(bet_sim_odds_df$rolling, bet_simulation$rolling)
+  expect_equivalent(bet_sim_closing_df$rolling, bet_simulation$rolling)
+  
+  # Tests to write
+  # See below for good single arg tests
+  # Test if stake is double then original output pl * 2 = new sim pl
+  # Similar tests for start_bank changing then pl constant but final bank x higher
+  # Test if max odds set then num bets goes down
+  # Same if min advantage increased
+  # Different size probs, odds, closing_odds creates problems
+  
+  # TO Do
+  
+  # Remove the .seed arg, not needed
+  # Write code to be able to handle when closing odds not supplied
+  # Test code when closing odds starts part way through
+  # Try putting some NAs into probs, odds, closing odds and make sure those matches are skipped but everything else 
+  # plays out OK
   
   
-  # expect_equivalent(100 * bet_simulation$profit_loss / bet_simulation$num_bets, bet_simulation$roi)
-  # expect_equivalent(nrow(bet_simulation$rolling) - 1, num_matches)
-  # expect_equivalent(sum(bet_simulation$num_bets_by_outcome), bet_simulation$num_bets)
-  # expect_equivalent(sum(bet_simulation$num_wins_by_outcome), bet_simulation$num_wins)
-  # 
-  # for (i in seq_along(1:num_outcomes)) {
-  #   
-  #   expect_equal(100 * bet_simulation$num_wins_by_outcome[i] / bet_simulation$num_bets_by_outcome[i], 
-  #                bet_simulation$win_percentage_by_outcome[i])
-  #   
-  # }
-  # 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # Now test the arguments, error handling and expected behaviour
+  
+  expect_error(simulate_bets(cbind(probs, probs[,1]), odds, outcomes, closing_odds, min_advantage = 0.00001))
+  expect_error(simulate_bets(as.data.frame(probs), odds, outcomes, closing_odds, min_advantage = 0.00001))
+  
+  
+  
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = c(0.05, 0.05)))
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = data.frame(c(0.05, 0.05))))
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = matrix(c(0.05, 0.05))))

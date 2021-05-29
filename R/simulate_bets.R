@@ -33,14 +33,14 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   
   ## Error handling
 
-  if (!is.matrix(probs)) stop ("'probs' must be a matrix")
-  if (!is.matrix(odds) & !is.data.frame(odds)) stop ("'odds' must be a matrix")
+  if (!is_matrix_df_tibble(probs)) stop ("'probs' must be a matrix, data.frame or tibble")
+  if (!is_matrix_df_tibble(odds)) stop ("'odds' must be a matrix, data.frame or tibble")
     
-  if (!is.matrix(closing_odds)) {
+  if (!is_matrix_df_tibble(closing_odds)) {
     
     if (!is.na(closing_odds[1])) {
       
-      stop ("'odds' must be a matrix, data.frame or tibble.")
+      stop ("'closing odds' must be a matrix, data.frame or tibble.")
       
     }
     
@@ -63,6 +63,10 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     closing_odds_supplied <- TRUE
     
   }  
+  
+  probs <- as.matrix(probs)
+  odds <- as.matrix(odds)
+  closing_odds <- as.matrix(closing_odds)
   
   num_matches <- nrow(probs)
   num_outcomes <- ncol(probs)
@@ -327,6 +331,8 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
   }
   
+  y_lim <- max(c(rolling_stats$bank_after_match, rolling_stats$expected_bank_after_match_clv), na.rm = TRUE)
+  
   p_rolling_bank <- rolling_stats %>%
     pivot_longer(cols = all_of(bank_names), names_to = "bank_type", values_to = "bank") %>%
     mutate(bank_type = factor(bank_type, levels = bank_names)) %>%
@@ -342,8 +348,8 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
           panel.border = element_blank(),
           axis.ticks = element_blank(),
           legend.position = "none") +
-    scale_y_continuous(limits =  c(0, max(rolling_bank, na.rm = TRUE)), 
-                       expand = c(0, max(rolling_bank, na.rm = TRUE) * 0.05)) +
+    scale_y_continuous(limits =  c(0, max(y_lim, na.rm = TRUE)), 
+                       expand = c(0, max(y_lim, na.rm = TRUE) * 0.05)) +
     labs(title = .title, x = "", y = "") +
     scale_color_manual(values = .colours) 
   
