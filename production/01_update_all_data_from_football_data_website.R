@@ -75,6 +75,15 @@ if(num_matches_new > 0){
     bind_rows(results_new_unique) %>%
     add_matches_played(rows = rows_to_add_features)
   
+  # Output latest matches from update for inspection
+  
+  file_write_date_time <- Sys.time() %>% str_replace_all(" ", "_") %>% str_replace_all(":|-", "")
+  
+  database_results %>%
+    filter(!(match_id %in% database_results_previous$match_id)) %>%
+    write_csv(file = glue("{wd$live_data}football_results_new_{file_write_date_time}.csv"))
+  
+  
   wd$live_data %>% paste0("football_results.rds") %>% write_rds(database_results, .)
   
   # Copy over the latest files to raw directory
