@@ -33,12 +33,14 @@ test_that("simulate_bets works as expected", {
   
   outcomes <- factor(c("away", "draw", "home", "draw", "home"), levels = c("home", "draw", "away"))
   
-  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001)  
-  
+  bet_sim <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001)  
+ 
   # test list structure
   
   expected_output_names <- c("profit_loss", 
                              "roi", 
+                             "went_bankrupt",
+                             "when_bankrupt",
                              "rolling", 
                              "num_bets", 
                              "bet_percentage", 
@@ -55,14 +57,14 @@ test_that("simulate_bets works as expected", {
                              "clv_bounds",
                              "matches_sampled_for_clv_test")
   
-  expect_equivalent(names(bet_simulation), expected_output_names) 
+  expect_equivalent(names(bet_sim), expected_output_names) 
   
-  expect_equal(bet_simulation$profit_loss, 8)
-  expect_equal(bet_simulation$roi, bet_simulation$profit_loss / bet_simulation$num_bets)
+  expect_equal(bet_sim$profit_loss, 8)
+  expect_equal(bet_sim$roi, bet_sim$profit_loss / bet_sim$num_bets)
   
   # Tests for the rolling object
   
-  rolling <- bet_simulation$rolling
+  rolling <- bet_sim$rolling
   
   expect_equal(nrow(rolling), length(outcomes) + 1)
   expect_equivalent(rolling$match_num, 0:length(outcomes))
@@ -70,7 +72,7 @@ test_that("simulate_bets works as expected", {
   expect_equivalent(rolling$odds_of_winner, c(NA, 6, 4.1, 1.3, 4, 2))
   
   expect_equivalent(rolling$profit_loss, c(NA, 5, 0, -1, 3, 1))
-  expect_equivalent(bet_simulation$profit_loss, unlist(rolling[6, "bank_after_match"] - rolling[1, "bank_after_match"]))
+  expect_equivalent(bet_sim$profit_loss, unlist(rolling[6, "bank_after_match"] - rolling[1, "bank_after_match"]))
  
   rolling$profit_loss[1] <- 100
   
@@ -81,32 +83,34 @@ test_that("simulate_bets works as expected", {
   expect_equivalent(rolling$outcome[-1], as.character(outcomes))
   expect_equivalent(rolling$bet_result[-1], c("win", "no_bet", "lose", "win", "win"))
   
-  expect_equal(bet_simulation$num_bets, 4)
-  expect_equal(bet_simulation$bet_percentage, 0.8)
-  expect_equivalent(bet_simulation$num_bets_by_outcome, c(1, 1, 2))
-  expect_equivalent(bet_simulation$bet_percentage_by_outcome, c(1, 1, 2) / length(outcomes))
-  expect_equivalent(bet_simulation$average_odds_for_bet, mean(rolling$odds_of_selection, na.rm = TRUE))
-  expect_equal(bet_simulation$num_wins, 3)
-  expect_equal(bet_simulation$win_percentage, 3 / 4)
-  expect_equivalent(bet_simulation$average_odds_for_win, mean(c(6, 4, 2)))
-  expect_equivalent(class(bet_simulation$p_rolling_bank), c("gg", "ggplot"))
+  expect_equal(bet_sim$num_bets, 4)
+  expect_equal(bet_sim$bet_percentage, 0.8)
+  expect_equivalent(bet_sim$num_bets_by_outcome, c(1, 1, 2))
+  expect_equivalent(bet_sim$bet_percentage_by_outcome, c(1, 1, 2) / length(outcomes))
+  expect_equivalent(bet_sim$average_odds_for_bet, mean(rolling$odds_of_selection, na.rm = TRUE))
+  expect_equal(bet_sim$num_wins, 3)
+  expect_equal(bet_sim$win_percentage, 3 / 4)
+  expect_equivalent(bet_sim$average_odds_for_win, mean(c(6, 4, 2)))
+  expect_equivalent(class(bet_sim$p_rolling_bank), c("gg", "ggplot"))
   
-  expect_equal(bet_simulation$clv_advantage, -0.01948734)
+  expect_equal(bet_sim$clv_advantage, -0.01948734)
     
-  
   # Lets take a scenario where its very simplistic but we have built a model and its unrealistically favorable.
   # We would expect to see an insane ratio smashing all the stats tests out the park
 
+  bet_sim_data <- glue("{load_wd()$tests_testthat}bet_sim_dummy_data.csv") %>%
+    read_csv(col_types = cols(.default = col_double(), outcome = col_character()))
+  
   probs <- bet_sim_data %>% select(home_prob:away_prob) %>% as.matrix()
   odds <- bet_sim_data %>% select(home_odds:away_odds) %>% as.matrix()
   closing_odds <- bet_sim_data %>% select(home_closing_odds:away_closing_odds) %>% as.matrix()
   outcomes <- bet_sim_data$outcome %>% factor(levels = c("home", "draw", "away"))
   
-  bet_simulation <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001)  
-  
+  bet_sim <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001)  
+
   # Near zero probability that this fails incase it ever falls down!
   
-  expect_equivalent(bet_simulation$clv_bound$info, rep("Ratio above bounds, evidence of skill", 3))
+  expect_equivalent(bet_sim$clv_bound$info, rep("Ratio above bounds, evidence of skill", 3))
   
   # Test args can be dfs
   
@@ -115,49 +119,66 @@ test_that("simulate_bets works as expected", {
   bet_sim_closing_df <- simulate_bets(probs, odds, outcomes, as_tibble(as.data.frame(closing_odds)), 
                                       min_advantage = 0.00001)
   
-  expect_equivalent(bet_sim_probs_df$rolling, bet_simulation$rolling)
-  expect_equivalent(bet_sim_odds_df$rolling, bet_simulation$rolling)
-  expect_equivalent(bet_sim_closing_df$rolling, bet_simulation$rolling)
+  expect_equivalent(bet_sim_probs_df$rolling, bet_sim$rolling)
+  expect_equivalent(bet_sim_odds_df$rolling, bet_sim$rolling)
+  expect_equivalent(bet_sim_closing_df$rolling, bet_sim$rolling)
   
-  # Tests to write
-  # See below for good single arg tests
-  # Test if stake is double then original output pl * 2 = new sim pl
-  # Similar tests for start_bank changing then pl constant but final bank x higher
-  # Test if max odds set then num bets goes down
-  # Same if min advantage increased
-  # Different size probs, odds, closing_odds creates problems
+  # Test the bankruptcy outputs
   
-  # TO Do
+  bet_sim_bankrupt <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001, start_bank = 4)  
   
-  # Remove the .seed arg, not needed
-  # Write code to be able to handle when closing odds not supplied
-  # Test code when closing odds starts part way through
-  # Try putting some NAs into probs, odds, closing odds and make sure those matches are skipped but everything else 
-  # plays out OK
+  expect_equal(bet_sim$went_bankrupt, FALSE)
+  expect_equal(bet_sim$when_bankrupt, NA_real_)
   
+  expect_equal(bet_sim_bankrupt$went_bankrupt, TRUE)
+  expect_equal(bet_sim_bankrupt$when_bankrupt, 4)
+
+  # Make sure the stake and start_bank parameters when varied do what we expect
   
+  bet_sim_double_stake <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001, stake = 2)
   
+  bet_sim_diff_start_bank <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001, 
+                                                  start_bank = 200)
   
   
+  expect_equivalent(bet_sim$profit_loss * 2, bet_sim_double_stake$profit_loss)
+  expect_equivalent(bet_sim$profit_loss, bet_sim_diff_start_bank$profit_loss)
+
+  expect_equivalent(
+    bet_sim$rolling$bank_after_match - 100, 
+    bet_sim_diff_start_bank$rolling$bank_after_match - 200
+  )
   
+  # And check that odds and wins dont change when you change the stake or start bank
   
+  expect_equivalent(bet_sim$num_wins, bet_sim_double_stake$num_wins)
+  expect_equivalent(bet_sim$average_odds_for_bet, bet_sim_double_stake$average_odds_for_bet)
+  expect_equivalent(bet_sim$average_odds_for_win, bet_sim_double_stake$average_odds_for_win)
   
+  expect_equivalent(bet_sim$num_wins, bet_sim_diff_start_bank$num_wins)
+  expect_equivalent(bet_sim$average_odds_for_bet, bet_sim_diff_start_bank$average_odds_for_bet)
+  expect_equivalent(bet_sim$average_odds_for_win, bet_sim_diff_start_bank$average_odds_for_win)  
   
+  # Test out the max odds and advantage arguments, ensuring that they cause fewer bets to be mad
   
+  bet_sim_max_odds <- simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.00001, max_odds = 2.5)
   
+  expect_lt(bet_sim_max_odds$num_bets, bet_sim$num_bets)
+
+  bet_sim_min_adv <-simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = 0.05)
   
+  expect_lt(bet_sim_min_adv$num_bets, bet_sim$num_bets)
   
+
+  ## Test for errors
   
-  
-  
-  
-  
-  # Now test the arguments, error handling and expected behaviour
-  
-  expect_error(simulate_bets(cbind(probs, probs[,1]), odds, outcomes, closing_odds, min_advantage = 0.00001))
-  expect_error(simulate_bets(as.data.frame(probs), odds, outcomes, closing_odds, min_advantage = 0.00001))
-  
-  
+  expect_error(simulate_bets(probs[-1, ], odds, outcomes, closing_odds, min_advantage = 0.00001))
+  expect_error(simulate_bets(probs[, -1], odds, outcomes, closing_odds, min_advantage = 0.00001))
+  expect_error(simulate_bets(probs, odds[-1,], outcomes, closing_odds, min_advantage = 0.00001))
+  expect_error(simulate_bets(probs, odds[,-1], outcomes, closing_odds, min_advantage = 0.00001))
+  expect_error(simulate_bets(probs, odds, outcomes[-1], closing_odds, min_advantage = 0.00001))
+  expect_error(simulate_bets(probs, odds, outcomes, closing_odds[-1,], min_advantage = 0.00001))
+  expect_error(simulate_bets(probs, odds, outcomes, closing_odds[,-1], min_advantage = 0.00001))
   
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = c(0.05, 0.05)))
   expect_error(simulate_bets(probs, odds, outcomes, closing_odds, min_advantage = data.frame(c(0.05, 0.05))))
@@ -178,8 +199,5 @@ test_that("simulate_bets works as expected", {
   
   expect_warning(simulate_bets(probs, odds, outcomes, closing_odds, start_bank = 0))
   expect_warning(simulate_bets(probs, odds, outcomes, closing_odds, start_bank = -20))
-  
-  # Finish testing all the variables and add in tests for the shape of probs / odds and tests for their contents etc  
-  
-  
+
 })

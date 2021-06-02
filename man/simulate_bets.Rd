@@ -2,7 +2,6 @@
 % Please edit documentation in R/simulate_bets.R
 \name{simulate_bets}
 \alias{simulate_bets}
-\alias{test_clv}
 \title{Simulate Bets}
 \usage{
 simulate_bets(
@@ -13,22 +12,8 @@ simulate_bets(
   min_advantage = 0.05,
   start_bank = 100,
   stake = 1,
-  max_odds = 5,
+  max_odds = NA,
   tolerance_digits = 3
-)
-
-test_clv(
-  odds,
-  outcomes,
-  closing_odds,
-  bet_placement_matrix,
-  num_matches,
-  rolling_stats,
-  stake,
-  bank,
-  num_outcomes,
-  num_bets,
-  num_bets_by_outcome
 )
 }
 \arguments{
@@ -53,16 +38,14 @@ bet on. These are used to check the closing line value (CLV) of the bets made.}
 \item{tolerance_digits}{Probabilities for a given match must sum to 1. However, some tolerance in this may be needed
 depending on how they were calculated. Default: 3. This means a matches probabilities would 
 not be flagged with they sum to 1+-0.001.}
+
+\item{.seed}{set a seed, good for testing the sampling in the CLV part or to get reproducible CLV stats}
 }
 \value{
 A list of betting statistics.
-
-Returns a list
 }
 \description{
 Simulate advantage bets
-
-Calculates CLV statistics for the simulate_bets function
 }
 \details{
 DETAILS

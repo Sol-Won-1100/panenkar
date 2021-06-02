@@ -29,7 +29,7 @@
 #' @export 
 
 simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advantage = 0.05, start_bank = 100, stake = 1, 
-                           max_odds = NA, tolerance_digits = 3, .seed = NA) {
+                           max_odds = NA, tolerance_digits = 3) {
   
   ## Error handling
 
@@ -167,7 +167,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     summarise(count = n(), .groups = "drop_last")
   
 
-  profit_loss_by_match <- rowSums(indicator_matrix * bet_placement_matrix * odds - bet_placement_matrix, 
+  profit_loss_by_match <- rowSums(stake * indicator_matrix * bet_placement_matrix * odds - stake * bet_placement_matrix, 
                                   na.rm = TRUE)
   
   num_wins <- sum(win_matrix, na.rm = TRUE)
@@ -184,6 +184,22 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   win_percentage_by_outcome <-  (num_wins_by_outcome / num_bets_by_outcome)
   
   rolling_bank <- c(start_bank, profit_loss_by_match) %>% cumsum()
+  
+  when_bankrupt <- which(rolling_bank <= 0)
+  
+  if (length(when_bankrupt) > 0) {
+    
+    went_bankrupt <- TRUE
+    when_bankrupt <- when_bankrupt[1] - 1
+    
+    
+  } else {
+    
+    went_bankrupt <- FALSE
+    when_bankrupt <- NA_real_
+    
+  }
+  
   
   rolling_stats <- tibble(match_num = 0:num_matches, 
                           odds_of_selection = c(NA_real_, rowSums(bet_placement_matrix *  odds, na.rm = TRUE)),
@@ -268,9 +284,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
     # We want to sample from each outcome the same number of bets we actually placed for a good comparison rather than
     # just randomly from each outcome because often one outcome might be generally favoured like home
-    
-    if (!is.na(.seed)) set.seed(.seed)
-    
+
     sample_indices <- 1:nrow(combined_odds[[1]]) %>% 
       sample(size = sum(num_bets_by_outcome), replace = TRUE) %>%
       split(rep(1:num_outcomes, num_bets_by_outcome))
@@ -357,6 +371,8 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   
   return(list(profit_loss = profit_loss, 
               roi = roi, 
+              went_bankrupt = went_bankrupt,
+              when_bankrupt = when_bankrupt,
               rolling = rolling_stats,
               num_bets = num_bets,
               bet_percentage = bet_percentage,
@@ -529,114 +545,5 @@ build_indicator_matrix <- function(x) {
   return(indicator)
   
 }
-
-
-
-#' @title Calculate Closing Line Value Statistics
-#' @description Calculates CLV statistics for the simulate_bets function
-#' @return Returns a list
-#' @rdname simulate_bets
-#' @export 
-
-test_clv <- function (odds, outcomes, closing_odds, bet_placement_matrix, num_matches, rolling_stats, stake, 
-                      bank, num_outcomes, num_bets, num_bets_by_outcome) {
-  
-
-  
-}
-
-#' Create Dummy Simulation Data
-#' 
-#' Create fake data for betting simulation
-#' 
-#' @param num_matches number of matches to simulate
-#' @param num_outcomes how many outcomes can you create
-#' @param .seed 
-
-
-create_dummy_sim_data <- function (num_matches, num_outcomes, .seed = NA) {
-  
-  if (length(num_matches) > 1) stop ("'num_matches' must be of length 1")
-  if (!is.numeric(num_matches)) stop ("'num_matches' must be numeric")
-  if (is.na(num_matches)) stop ("'num_matches' must not be NA")
-  if (num_matches < 1) stop ("'num_matches' must be >= 1")
-  if (round(num_matches) != num_matches) stop ("'num_matches' must be a positive integer")
-  
-  if (length(num_outcomes) > 1) stop ("'num_outcomes' must be of length 1")
-  if (!is.numeric(num_outcomes)) stop ("'num_outcomes' must be numeric")
-  if (is.na(num_outcomes)) stop ("'num_outcomes' must not be NA")
-  if (num_outcomes < 1) stop ("'num_outcomes' must be >= 1")
-  if (round(num_outcomes) != num_outcomes) stop ("'num_outcomes' must be a positive integer")
-  
-  if (length(.seed) > 1) stop ("'.seed' must be of length 1")
-  if (!is.numeric(num_outcomes) & !is.na(num_outcomes)) stop ("'.seed' must be numeric or NA")
-  
-  if (is.na(.seed)) {
-    
-    random_probs <- runif(num_outcomes * num_matches, 0.2, 0.8) %>% matrix(nrow = num_matches, ncol = num_outcomes) 
-    
-  } else {
-    
-    set.seed(.seed)
-    random_probs <- runif(num_outcomes * num_matches, 0.2, 0.8) %>% matrix(nrow = num_matches, ncol = num_outcomes) 
-    
-  }
-
-  # Just using this to benchmark them to 0, not actually interested in anything margin related at this stage.
-
-  actual_probs <- random_probs / 
-                  matrix(rep(c(rowSums(random_probs)), num_outcomes), byrow = FALSE, nrow = nrow(random_probs))
-
-  if (is.na(.seed)) {
-    
-    # We will then adjust the probabilities by this scaled amount
-    
-    bookmakers_margin <- runif(1, 0.01, 0.1)%>% matrix(nrow = num_matches, ncol = num_outcomes) 
-
-  } else {
-    
-    set.seed(.seed)
-    bookmakers_margin <- runif(1, 0.01, 0.1)%>% matrix(nrow = num_matches, ncol = num_outcomes) 
-    
-  }
-  
-  implied_probs_with_margin <- actual_probs * (1 + bookmakers_margin)
-
-  if (is.na(.seed + 1)) {
-    
-    closing_adjustment <- num_outcomes %>% 
-      runif(0.01, 0.1)%>% 
-      matrix(nrow = num_matches, ncol = num_outcomes, byrow = TRUE) 
-    
-  } else {
-
-    closing_adjustment <- num_outcomes %>% 
-      runif(0.01, 0.1)%>% 
-      matrix(nrow = num_matches, ncol = num_outcomes, byrow = TRUE) 
-    
-  }
-  
-  implied_probs_closing_with_margin <- actual_probs * (1 + closing_adjustment)
-
-  possible_outcomes <- paste0("o", 1:num_outcomes)
-  
-  if (is.na(.seed)) {
-
-    outcomes <- possible_outcomes %>% sample(size = num_matches, replace = TRUE) %>% factor(levels = possible_outcomes)
-    
-  } else {
-    
-    set.seed(.seed)
-    outcomes <- possible_outcomes %>% sample(size = num_matches, replace = TRUE) %>% factor(levels = possible_outcomes)
-    
-  }
-  
-  return(list(estimated_probs = actual_probs, 
-              bookmakers_odds = 1 / implied_probs_with_margin, 
-              outcomes = outcomes, 
-              bookmakers_closing_odds = 1 / implied_probs_closing_with_margin))
-  
-}
-
 
 
