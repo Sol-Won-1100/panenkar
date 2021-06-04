@@ -23,6 +23,7 @@ Depends:
   glue,
   here,
   testthat,
-  implied
+  implied,
+  tictoc
 RoxygenNote: 7.1.1
 
