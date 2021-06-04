@@ -123,4 +123,18 @@ test_that("remove_margin works as expected", {
   expect_equivalent(remove_margin(odds_some_problems), expected_result)
 
   
+  arb_odds <- c(3, 3.5, 2.8)
+  not_arb_odds <- c(2, 3, 4)
+  
+  expect_equivalent(remove_margin(arb_odds), (1 / arb_odds) / sum (1 / arb_odds))
+  expect_equivalent(remove_margin(arb_odds, method = "straight"), (1 / arb_odds) / sum (1 / arb_odds))
+  
+  mix_odds <- matrix(c(arb_odds, not_arb_odds), nrow = 2, byrow = TRUE)  
+  
+  expect_equivalent(
+    remove_margin(mix_odds),
+    matrix(c(remove_margin(arb_odds), remove_margin(not_arb_odds)), nrow = 2, byrow = TRUE)
+  )
+  
+  
 })

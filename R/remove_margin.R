@@ -55,15 +55,55 @@ remove_margin <- function(x, method = "proportional") {
   
   if (!is.numeric(x)) stop ("'x' must be numeric")
 
-  cols_with_nas <- unique(which(is.na(x), arr.ind = TRUE)[, "col"])
+ # cols_with_nas <- unique(which(is.na(x), arr.ind = TRUE)[, "col"]) 
   
   if (length(x[x <= 1 & !is.na(x)]) != 0) stop ("'x' values must be > 1")
   
   if (method == "proportional") {
     
+    # Matches with no margin are not suitable for using the proportional method and the implied_probabilities
+    # function from the implied package throws an error when you try and use them. So we have 2 groups. Group 1 must use
+    # the straight method and group 2 can use the proportional method. Group 2 is split into 2 further sub groups, 
+    # 1 is standard and 1 is problematic
+
+    matches_with_method_required <- x %>%
+      as.data.frame() %>%
+      as_tibble() %>%
+      mutate(row_sums = rowSums(1 / x), 
+             row_num = 1:n(),
+             method_group = case_when(
+               is.na(row_sums) ~ "proportional",
+               row_sums > 1 ~ "proportional",
+               row_sums <= 1 ~ "straight"
+             ),
+             method_group = factor(method_group, levels = c("straight", "proportional")))
+    
+    matches_group1 <- filter(matches_with_method_required, method_group == "straight")
+    matches_group2 <- filter(matches_with_method_required, method_group == "proportional")
+    
+    if (nrow(matches_group1) > 0) { 
+   
+      x_straight <- x[matches_group1$row_num, ,drop = FALSE]
+ 
+      x_straight_margins <- matrix(rep(rowSums(1 / x_straight), ncol(x)), byrow = FALSE, nrow = nrow(x_straight))
+      
+      x_straight_no_margin <- ((1 / x_straight) / x_straight_margins) %>%
+        as.data.frame() %>%
+        as_tibble() %>%
+        mutate(row_num = matches_group1$row_num)
+      
+      x <- x[matches_group2$row_num, ,drop = FALSE]
+      
+    } 
+    
+    
+    
     suppressWarnings(
       implied_probs_output <- implied_probabilities(x, method = "wpo")
     )
+    
+    # Some matches with very low or high odds will not work with the proportion method but dont throw an error. Find 
+    # these and pass them through the function using the straight method
     
     problem_matches <- which(implied_probs_output$problematic == TRUE)
     
@@ -74,10 +114,27 @@ remove_margin <- function(x, method = "proportional") {
       prob_no_margin[problem_matches,] <- implied_probabilities(x[problem_matches,])$probabilities
       
     }
-
+    
+    # Finally join them all together
+    
+    if (nrow(matches_group1) > 0) { # Length 2 means some in the "straight" group were detected - need to bind
+      
+      prob_no_margin <- prob_no_margin %>%
+        as.data.frame() %>%
+        as_tibble() %>%
+        mutate(row_num = matches_group2$row_num) %>%
+        bind_rows(x_straight_no_margin) %>%
+        arrange(row_num) %>%
+        select(-row_num) %>%
+        as.matrix()
+      
+    }
+    
   } else {
    
-    prob_no_margin <- implied_probabilities(x)$probabilities
+    x_margins <- matrix(rep(rowSums(1 / x), ncol(x)), byrow = FALSE, nrow = nrow(x))
+    
+    prob_no_margin <- ((1 / x) / x_margins)
     
   }
   
