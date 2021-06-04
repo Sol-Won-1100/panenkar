@@ -11,9 +11,6 @@
 #' @param start_bank Starting bankroll units. Default: 100.
 #' @param stake Stake to place per bet. Default: 1.
 #' @param max_odds Maximum odds which a bet is placed it. You might limit odds to lower variance. Default: 5.
-#' @param tolerance_digits Probabilities for a given match must sum to 1. However, some tolerance in this may be needed
-#'                         depending on how they were calculated. Default: 3. This means a matches probabilities would 
-#'                         not be flagged with they sum to 1+-0.001.
 #' @param .seed set a seed, good for testing the sampling in the CLV part or to get reproducible CLV stats
 #' @return A list of betting statistics.
 #' @details DETAILS
@@ -29,7 +26,7 @@
 #' @export 
 
 simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advantage = 0.05, start_bank = 100, stake = 1, 
-                           max_odds = NA, tolerance_digits = 3) {
+                           max_odds = NA) {
   
   ## Error handling
 
@@ -86,9 +83,11 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   probs <- as.matrix(probs, nrow = num_matches, ncol = num_outcomes)
   odds <- as.matrix(odds, nrow = num_matches, ncol = num_outcomes)
   
-  # colnames(probs) <- paste0(levels(outcomes), "_prob")
-  # colnames(odds) <- paste0(levels(outcomes), "_odds")
-  # 
+  # Probabilities for a given match must sum to 1. However, some tolerance in this may be needed depending on how they 
+  # were calculated. Default: 3. This means a matches probabilities would not be flagged with they sum to 1+-0.001.
+  
+  tolerance_digits <- 3
+  
   probs_sum_by_match <- probs %>% rowSums() %>% round(tolerance_digits) 
   probs_sum_by_match <- probs_sum_by_match[!is.na(probs_sum_by_match)]         
   probs_sum_by_match <- probs_sum_by_match[probs_sum_by_match != 1]                          
@@ -99,9 +98,9 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     
   }
 
-  if (length(probs[probs < 0]) > 0)  stop("'probs' elements must be greater than or equal to 0.")
-  if (length(probs[probs > 1]) > 0) stop("'probs' elements must be less than or equal to 1.")
-  if (length(odds[odds <= 1]) > 0) stop("'odds' elements must be greater than 1.")
+  if (length(probs[probs < 0 & !is.na(probs)]) > 0)  stop("'probs' elements must be greater than or equal to 0.")
+  if (length(probs[probs > 1 & !is.na(probs)]) > 0) stop("'probs' elements must be less than or equal to 1.")
+  if (length(odds[odds <= 1 & !is.na(odds)]) > 0) stop("'odds' elements must be greater than 1.")
   if (!is.numeric(min_advantage)) stop("'min_advantage' must be numeric.")
   if (length(min_advantage) != 1) stop(glue("'min_advantage' must have length 1 not {length(min_advantage)}"))
   
@@ -225,7 +224,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
   ## Calculate closing line value
 
   if (closing_odds_supplied == TRUE) {
-    
+   
     # colnames(closing_odds) <- paste0(levels(outcomes), "_closing_odds")
     
     clv_df <- tibble(actual_odds_bet = rowSums(bet_placement_matrix * odds), 
@@ -334,6 +333,9 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     bank_names <- c("bank_after_match", "expected_bank_after_match_clv")
     .title <- "Rolling Bank with Expected Bank from CLV"
     .colours <- c("#FF0000", "#000000")
+    
+    rolling_stats <- select(rolling_stats, -fair_closing_odds, -bet_placed_closing)
+    y_lim <- max(c(rolling_stats$bank_after_match, rolling_stats$expected_bank_after_match_clv), na.rm = TRUE)
 
   } else {
     
@@ -342,14 +344,14 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
     .colours <- "#FF0000"
     clv_advantage <- NA
     sd_bounds <- NA
+    sample_indices <- NA
+    y_lim <- max(c(rolling_stats$bank_after_match), na.rm = TRUE)
     
   }
   
-  y_lim <- max(c(rolling_stats$bank_after_match, rolling_stats$expected_bank_after_match_clv), na.rm = TRUE)
-  
   p_rolling_bank <- rolling_stats %>%
     pivot_longer(cols = all_of(bank_names), names_to = "bank_type", values_to = "bank") %>%
-    mutate(bank_type = factor(bank_type, levels = bank_names)) %>%
+    mutate(bank_type = factor(bank_type, levels = rev(bank_names))) %>%
     ggplot(aes(x = match_num, y = bank, group = bank_type, colour = bank_type)) +
     geom_line() +
     theme_bw() +
@@ -366,8 +368,6 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
                        expand = c(0, max(y_lim, na.rm = TRUE) * 0.05)) +
     labs(title = .title, x = "", y = "") +
     scale_color_manual(values = .colours) 
-  
-  rolling_stats <- select(rolling_stats, -fair_closing_odds, -bet_placed_closing)
   
   return(list(profit_loss = profit_loss, 
               roi = roi, 
@@ -386,7 +386,7 @@ simulate_bets <- function (probs, odds, outcomes, closing_odds = NA, min_advanta
               average_odds_for_win = average_odds_for_win,
               p_rolling_bank = p_rolling_bank,
               clv_advantage = clv_advantage,
-              clv_bounds = sd_bounds,
+              clv_stats_tests = sd_bounds,
               matches_sampled_for_clv_test = sample_indices))
   
 }
@@ -484,13 +484,12 @@ build_bet_placement_matrix <- function(probs, odds, min_advantage, max_odds) {
 
   for (i in seq_along(1:num_matches)) {
     
-    odds_i_problem <- unlist(odds[1,])
-    odds_i_problem <- odds_i_problem[is_na_inf_nan(odds_i_problem)]
+    odds_i <- unlist(odds[i,])
+    probs_i <- unlist(probs[i,])
     
-    probs_i_problem <- unlist(probs[1,])
-    probs_i_problem <- probs_i_problem[is_na_inf_nan(probs_i_problem)]
+    # If any of the odds or probs for that match are NAs then no bets are placed
     
-    if (!(length(odds_i_problem) > 0 | length(probs_i_problem) > 0)) {
+    if (sum(is_na_inf_nan(odds_i)) == 0 & sum(is_na_inf_nan(probs_i)) == 0) {
       
       for (j in seq_along(1:num_outcomes)) {
         

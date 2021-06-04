@@ -54,7 +54,7 @@ test_that("simulate_bets works as expected", {
                              "average_odds_for_win",
                              "p_rolling_bank",
                              "clv_advantage",
-                             "clv_bounds",
+                             "clv_stats_tests",
                              "matches_sampled_for_clv_test")
   
   expect_equivalent(names(bet_sim), expected_output_names) 
@@ -98,7 +98,7 @@ test_that("simulate_bets works as expected", {
   # Lets take a scenario where its very simplistic but we have built a model and its unrealistically favorable.
   # We would expect to see an insane ratio smashing all the stats tests out the park
 
-  bet_sim_data <- glue("{load_wd()$tests_testthat}bet_sim_dummy_data.csv") %>%
+  bet_sim_data <- paste0(load_wd()$tests_testthat, "bet_sim_dummy_data.csv") %>%
     read_csv(col_types = cols(.default = col_double(), outcome = col_character()))
   
   probs <- bet_sim_data %>% select(home_prob:away_prob) %>% as.matrix()
@@ -110,7 +110,52 @@ test_that("simulate_bets works as expected", {
 
   # Near zero probability that this fails incase it ever falls down!
   
-  expect_equivalent(bet_sim$clv_bound$info, rep("Ratio above bounds, evidence of skill", 3))
+  expect_equivalent(bet_sim$clv_stats_tests$info, rep("Ratio above bounds, evidence of skill", 3))
+  
+  # Test we dont need to supply closing odds
+  
+  bet_sim_no_closing <- simulate_bets(probs, odds, outcomes, closing_odds = NA, min_advantage = 0.00001)  
+  
+  expect_equal(bet_sim_no_closing$clv_advantage, NA)
+  expect_equal(bet_sim_no_closing$clv_stats_tests, NA)
+  expect_equal(bet_sim_no_closing$matches_sampled_for_clv_test, NA)
+  expect_equal(bet_sim_no_closing$profit_loss, bet_sim$profit_loss)
+  
+  
+  # Test we dont need to supply all closing odds
+  
+  closing_odds_nas <- closing_odds
+  closing_odds_nas[1:100,] <- NA
+  
+  bet_sim_some_closing_na <- simulate_bets(probs, odds, outcomes, closing_odds = closing_odds_nas, 
+                                           min_advantage = 0.00001) 
+  
+  
+  expect_equivalent(bet_sim_some_closing_na$rolling$clv_advantage[1:100], rep(NA_real_, 100))
+  expect_equivalent(bet_sim_some_closing_na$rolling$bank_after_match[1:100],
+                    bet_sim_some_closing_na$rolling$expected_bank_after_match_clv[1:100])
+  
+  expect_false(isTRUE(all.equal(bet_sim_some_closing_na$rolling$bank_after_match[1:101], 
+                                bet_sim_some_closing_na$rolling$expected_bank_after_match_clv[1:101])))
+  
+  # Test that closing odds NA later dont throw any problems and the first match still starts at position 101
+  
+  
+  closing_odds_nas[110,] <- NA
+  
+  bet_sim_some_closing_na2 <- simulate_bets(probs, odds, outcomes, closing_odds = closing_odds_nas, 
+                                            min_advantage = 0.00001) 
+  
+  expect_equivalent(bet_sim_some_closing_na$rolling$bank_after_match[1:100],
+                    bet_sim_some_closing_na2$rolling$expected_bank_after_match_clv[1:100])
+  
+  expect_equivalent(bet_sim_some_closing_na2$rolling[, 1:7], bet_sim_some_closing_na$rolling[,1:7])
+  
+  bet_sim_some_closing_na2$rolling %>%
+    filter(match_num == 110) %>%
+    select(bet_result, clv_advantage) %>%
+    expect_equivalent(tibble(bet_result = "lose", clv_advantage = NA_real_))
+  
   
   # Test args can be dfs
   
@@ -169,8 +214,31 @@ test_that("simulate_bets works as expected", {
   
   expect_lt(bet_sim_min_adv$num_bets, bet_sim$num_bets)
   
+  # Test that NAs in probs, odds and outcomes doesnt cause problems
+  
+  probs_na <- probs
+  probs_na[3, 1] <- NA
+  probs_na[4, 1:2] <- NA
+  probs_na[5, 1:3] <- NA
+  
+  bet_sim_probs_na <- simulate_bets(probs_na, odds, outcomes, closing_odds, min_advantage = 0.00001)
+  
+  expect_equivalent(bet_sim_probs_na$rolling$bet_result[4:6], rep("no_bet", 3))
+  
+  odds_na <- odds
+  odds_na[3, 1] <- NA
+  odds_na[4, 1:2] <- NA
+  odds_na[5, 1:3] <- NA
+  
+  bet_sim_odds_na <- simulate_bets(probs, odds_na, outcomes, closing_odds, min_advantage = 0.00001)
+  expect_equivalent(bet_sim_odds_na$rolling$bet_result[4:6], rep("no_bet", 3))
 
-  ## Test for errors
+  outcomes_na <- outcomes
+  outcomes_na[3:5] <- NA
+  
+  bet_sim_outcomes_na <- simulate_bets(probs, odds, outcomes_na, closing_odds, min_advantage = 0.00001)
+  expect_equivalent(bet_sim_outcomes_na$rolling$bet_result[4:6], rep("no_bet", 3))
+  
   
   expect_error(simulate_bets(probs[-1, ], odds, outcomes, closing_odds, min_advantage = 0.00001))
   expect_error(simulate_bets(probs[, -1], odds, outcomes, closing_odds, min_advantage = 0.00001))

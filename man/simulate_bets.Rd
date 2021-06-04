@@ -12,8 +12,7 @@ simulate_bets(
   min_advantage = 0.05,
   start_bank = 100,
   stake = 1,
-  max_odds = NA,
-  tolerance_digits = 3
+  max_odds = NA
 )
 }
 \arguments{
@@ -34,10 +33,6 @@ bet on. These are used to check the closing line value (CLV) of the bets made.}
 \item{stake}{Stake to place per bet. Default: 1.}
 
 \item{max_odds}{Maximum odds which a bet is placed it. You might limit odds to lower variance. Default: 5.}
-
-\item{tolerance_digits}{Probabilities for a given match must sum to 1. However, some tolerance in this may be needed
-depending on how they were calculated. Default: 3. This means a matches probabilities would 
-not be flagged with they sum to 1+-0.001.}
 
 \item{.seed}{set a seed, good for testing the sampling in the CLV part or to get reproducible CLV stats}
 }
